@@ -1,10 +1,11 @@
 package net.jmp.demo.redis;
 
 /*
+ * (#)Main.java 0.2.0   05/01/2024
  * (#)Main.java 0.1.0   05/01/2024
  *
  * @author   Jonathan Parker
- * @version  0.1.0
+ * @version  0.2.0
  * @since    0.1.0
  *
  * MIT License
@@ -32,14 +33,16 @@ package net.jmp.demo.redis;
 
 import com.google.gson.Gson;
 
+import java.io.IOException;
+
+import java.nio.file.Files;
+import java.nio.file.Paths;
+
+import java.util.Optional;
+
 import org.slf4j.LoggerFactory;
 
 import org.slf4j.ext.XLogger;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.Optional;
 
 /*
  * The application's main class.
@@ -63,6 +66,8 @@ public final class Main {
      */
     private void go() {
         this.logger.entry();
+
+        this.logger.info("Redis-Demo version {}", Version.VERSION);
 
         this.getAppConfig().ifPresent(appConfig -> {
             new Caching().go();
@@ -99,6 +104,8 @@ public final class Main {
      * @param   args    java.lang.String[]
      */
     public static void main(final String[] args) {
+        System.out.printf("Redis-Demo version %s%n", Version.VERSION);
+
         new Main().go();
     }
 }
