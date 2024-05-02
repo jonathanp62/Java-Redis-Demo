@@ -31,7 +31,9 @@ package net.jmp.demo.redis;
  * SOFTWARE.
  */
 
-import org.redisson.client.RedisClient;
+import org.redisson.api.RedissonClient;
+
+import org.redisson.client.codec.StringCodec;
 
 import org.slf4j.LoggerFactory;
 
@@ -73,10 +75,31 @@ final class Caching {
 
         final var client = connector.connect();
 
+        this.listBucketValues(client);
+
         connector.disconnect(client);
 
         if (client.isShutdown())
             this.logger.info("Redisson client has shut down");
+
+        this.logger.exit();
+    }
+
+    /**
+     * List the string values in all the buckets.
+     *
+     * @param   client  org.redisson.api.RedissonClient
+     */
+    void listBucketValues(final RedissonClient client) {
+        this.logger.entry(client);
+
+        if (this.logger.isInfoEnabled()) {
+            for (final var key : client.getKeys().getKeys()) {
+                final var bucket = client.getBucket(key, StringCodec.INSTANCE);
+
+                this.logger.info("Value of key '{}': {}", key, bucket.get());
+            }
+        }
 
         this.logger.exit();
     }
