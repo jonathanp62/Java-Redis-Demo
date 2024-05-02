@@ -69,10 +69,10 @@ public final class Main {
 
         this.logger.info("Redis-Demo version {}", Version.VERSION);
 
-        this.getAppConfig().ifPresent(appConfig -> {
-            new Caching().go();
-            new Locking().go();
-        });
+        this.getAppConfig().ifPresentOrElse(appConfig -> {
+            new Caching(appConfig).go();
+            new Locking(appConfig).go();
+        }, () -> this.logger.error("No configuration found for Redis-Demo"));
 
         this.logger.exit();
     }

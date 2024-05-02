@@ -1,10 +1,11 @@
 package net.jmp.demo.redis;
 
 /*
+ * (#)Config.java   0.2.0   05/02/2024
  * (#)Config.java   0.1.0   05/01/2024
  *
  * @author    Jonathan Parker
- * @version   0.1.0
+ * @version   0.2.0
  * @since     0.1.0
  *
  * MIT License
@@ -44,6 +45,10 @@ final class Redis {
     @SerializedName("port")
     private int port;
 
+    /** The protocol. */
+    @SerializedName("protocol")
+    private String protocol;
+
     /**
      * Get the host name.
      *
@@ -81,6 +86,24 @@ final class Redis {
     }
 
     /**
+     * Get the protocol.
+     *
+     * @return  java.lang.String
+     */
+    String getProtocol() {
+        return this.protocol;
+    }
+
+    /**
+     * Set the protocol.
+     *
+     * @param   protocol    java.lang.String
+     */
+    void setProtocol(final String protocol) {
+        this.protocol = protocol;
+    }
+
+    /**
      * The to-string method.
      *
      * @return  java.lang.String
@@ -90,6 +113,7 @@ final class Redis {
         return "Redis{" +
                 "hostName='" + hostName + '\'' +
                 ", port=" + port +
+                ", protocol=" + protocol +
                 '}';
     }
 }

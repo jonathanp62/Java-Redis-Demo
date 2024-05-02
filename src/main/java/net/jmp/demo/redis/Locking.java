@@ -1,10 +1,11 @@
 package net.jmp.demo.redis;
 
 /*
+ * (#)Locking.java  0.2.0   05/02/2024
  * (#)Locking.java  0.1.0   05/01/2024
  *
  * @author   Jonathan Parker
- * @version  0.1.0
+ * @version  0.2.0
  * @since    0.1.0
  *
  * MIT License
@@ -41,11 +42,19 @@ final class Locking {
     /** The logger. */
     private final XLogger logger = new XLogger(LoggerFactory.getLogger(this.getClass().getName()));
 
+    /** The application configuration. */
+    private final Config config;
+
     /**
-     * The default constructor.
+     * The constructor that takes
+     * the application configuration.
+     *
+     * @param   config  net.jmp.demo.redis.Config
      */
-    Locking() {
+    Locking(final Config config) {
         super();
+
+        this.config = config;
     }
 
     /**
@@ -53,6 +62,20 @@ final class Locking {
      */
     void go() {
         this.logger.entry();
+
+        final var connector = new Connector(
+                this.config.getRedis().getHostName(),
+                this.config.getRedis().getPort(),
+                this.config.getRedis().getProtocol()
+        );
+
+        final var client = connector.connect();
+
+        connector.disconnect(client);
+
+        if (client.isShutdown())
+            this.logger.info("Redisson client has shut down");
+
         this.logger.exit();
     }
 }

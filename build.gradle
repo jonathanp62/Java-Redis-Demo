@@ -67,13 +67,14 @@ repositories {
 }
 
 dependencies {
-    implementation libs.ch.qos.logback.logback.classic
-    implementation libs.ch.qos.logback.logback.core
-    implementation libs.com.google.code.gson.gson
-    implementation libs.org.redisson.redisson
-    implementation libs.org.slf4j.slf4j.api
-    implementation libs.org.slf4j.slf4j.ext
-    testImplementation libs.junit.junit
+    runtimeOnly         libs.ch.qos.logback.logback.classic
+    runtimeOnly         libs.ch.qos.logback.logback.core
+    implementation      libs.com.google.code.gson.gson
+    implementation      libs.org.redisson.redisson
+    runtimeOnly         ("io.netty:netty-resolver-dns-native-macos:4.1.109.Final:osx-x86_64")
+    implementation      libs.org.slf4j.slf4j.api
+    implementation      libs.org.slf4j.slf4j.ext
+    testImplementation  libs.junit.junit
 }
 
 group = 'net.jmp.demo.redis'
