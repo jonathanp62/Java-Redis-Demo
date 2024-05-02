@@ -49,10 +49,9 @@ application {
 
 repositories {
     mavenLocal()
-    maven {
-        url = uri('http://localhost:8081/nexus/content/repositories/releases')
 
-        allowInsecureProtocol = true
+    maven {
+        url = uri('https://repo.maven.apache.org/maven2/')
     }
 
     maven {
@@ -62,7 +61,9 @@ repositories {
     }
 
     maven {
-        url = uri('https://repo.maven.apache.org/maven2/')
+        url = uri('http://localhost:8081/nexus/content/repositories/releases')
+
+        allowInsecureProtocol = true
     }
 }
 
