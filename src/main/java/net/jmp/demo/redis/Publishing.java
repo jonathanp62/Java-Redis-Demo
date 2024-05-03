@@ -1,12 +1,11 @@
 package net.jmp.demo.redis;
 
 /*
- * (#)Locking.java  0.2.0   05/02/2024
- * (#)Locking.java  0.1.0   05/01/2024
+ * (#)Publishing.java   0.2.0   05/03/2024
  *
  * @author   Jonathan Parker
  * @version  0.2.0
- * @since    0.1.0
+ * @since    0.2.0
  *
  * MIT License
  *
@@ -31,16 +30,20 @@ package net.jmp.demo.redis;
  * SOFTWARE.
  */
 
+import java.time.Duration;
+
+import org.redisson.api.RSemaphore;
+import org.redisson.api.RTopic;
 import org.redisson.api.RedissonClient;
 
 import org.slf4j.LoggerFactory;
 
 import org.slf4j.ext.XLogger;
 
-/*
- * The class that demonstrates using Redis for locking.
+/**
+ * A class that demonstrates using Redis for publishing and subscribing to a topic.
  */
-final class Locking {
+final class Publishing {
     /** The logger. */
     private final XLogger logger = new XLogger(LoggerFactory.getLogger(this.getClass().getName()));
 
@@ -56,19 +59,49 @@ final class Locking {
      *
      * @param   config  net.jmp.demo.redis.Config
      * @param   client  org.redisson.api.RedissonClient
+     *
      */
-    Locking(final Config config, final RedissonClient client) {
+    Publishing(final Config config, final RedissonClient client) {
         super();
 
         this.config = config;
         this.client = client;
     }
 
-    /**
-     * The go method.
-     */
     void go() {
         this.logger.entry();
+
+        final String topicName = "jonathanp62";
+        final String semaphoreName = "topic-semaphore";
+        final RTopic subscribedTopic = this.client.getTopic(topicName);
+        final RSemaphore semaphore = this.client.getSemaphore(semaphoreName);
+
+        if (semaphore.trySetPermits(1)) {
+            if (semaphore.tryAcquire()) {
+                subscribedTopic.addListener(String.class, (channel, string) -> {
+                    this.logger.info("Published message: {}", string);
+                    semaphore.release();
+                });
+
+                final RTopic publishedTopic = this.client.getTopic(topicName);
+
+                publishedTopic.publish("This is my message to publish");
+
+                try {
+                    semaphore.tryAcquire(Duration.ofSeconds(5));
+                } catch (final InterruptedException ie) {
+                    this.logger.catching(ie);
+                    Thread.currentThread().interrupt();
+                }
+
+                subscribedTopic.removeAllListeners();
+            } else
+                this.logger.warn("Unable to acquire a permit for semaphore '{}'", semaphoreName);
+        } else
+            this.logger.warn("Unable to set one permit for semaphore '{}'", semaphoreName);
+
+        if (semaphore.delete())
+            this.logger.info("Semaphore '{}' deleted", semaphoreName);
 
         this.logger.exit();
     }

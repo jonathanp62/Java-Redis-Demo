@@ -40,6 +40,7 @@ import java.nio.file.Paths;
 
 import java.util.Optional;
 
+import org.redisson.api.RedissonClient;
 import org.slf4j.LoggerFactory;
 
 import org.slf4j.ext.XLogger;
@@ -70,8 +71,22 @@ public final class Main {
         this.logger.info("Redis-Demo version {}", Version.VERSION);
 
         this.getAppConfig().ifPresentOrElse(appConfig -> {
-            new Caching(appConfig).go();
-            new Locking(appConfig).go();
+            RedissonClient client = null;
+
+            try {
+                client = this.getClient(appConfig);
+
+                new Caching(appConfig, client).go();
+                new Publishing(appConfig, client).go();
+                new Locking(appConfig, client).go();
+            } finally {
+                if (client != null) {
+                    Connector.disconnect(client);
+
+                    if (client.isShutdown())
+                        this.logger.info("Redisson client has shut down");
+                }
+            }
         }, () -> this.logger.error("No configuration found for Redis-Demo"));
 
         this.logger.exit();
@@ -96,6 +111,28 @@ public final class Main {
         this.logger.exit(appConfig);
 
         return Optional.ofNullable(appConfig);
+    }
+
+    /**
+     * Get the Redisson client.
+     *
+     * @param   config  net.jmp.demo.redis.Config
+     * @return          org.redisson.api.RedissonClient
+     */
+    private RedissonClient getClient(final Config config) {
+        this.logger.entry(config);
+
+        final var connector = new Connector(
+                config.getRedis().getHostName(),
+                config.getRedis().getPort(),
+                config.getRedis().getProtocol()
+        );
+
+        final var client = connector.connect();
+
+        this.logger.exit(client);
+
+        return client;
     }
 
     /**

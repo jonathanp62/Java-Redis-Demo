@@ -99,13 +99,9 @@ final class Connector {
      *
      * @param   client  org.redisson.api.RedissonClient
      */
-    void disconnect(final RedissonClient client) {
-        this.logger.entry();
-
+    static void disconnect(final RedissonClient client) {
         if (client != null) {
             client.shutdown();
         }
-
-        this.logger.exit();
     }
 }

@@ -31,7 +31,7 @@ package net.jmp.demo.redis;
  * SOFTWARE.
  */
 
-import org.redisson.api.RedissonClient;
+import org.redisson.api.*;
 
 import org.redisson.client.codec.StringCodec;
 
@@ -49,16 +49,22 @@ final class Caching {
     /** The application configuration. */
     private final Config config;
 
+    /** The Redisson client. */
+    private final RedissonClient client;
+
     /**
      * The constructor that takes
      * the application configuration.
      *
      * @param   config  net.jmp.demo.redis.Config
+     * @param   client  org.redisson.api.RedissonClient
+     *
      */
-    Caching(final Config config) {
+    Caching(final Config config, final RedissonClient client) {
         super();
 
         this.config = config;
+        this.client = client;
     }
 
     /**
@@ -67,39 +73,68 @@ final class Caching {
     void go() {
         this.logger.entry();
 
-        final var connector = new Connector(
-                this.config.getRedis().getHostName(),
-                this.config.getRedis().getPort(),
-                this.config.getRedis().getProtocol()
-        );
-
-        final var client = connector.connect();
-
-        this.listBucketValues(client);
-
-        connector.disconnect(client);
-
-        if (client.isShutdown())
-            this.logger.info("Redisson client has shut down");
+        this.listBucketValues();
+        this.setAndGetObject();
+        this.setAndGetAtomicLong();
 
         this.logger.exit();
     }
 
     /**
      * List the string values in all the buckets.
-     *
-     * @param   client  org.redisson.api.RedissonClient
      */
-    void listBucketValues(final RedissonClient client) {
-        this.logger.entry(client);
+    private void listBucketValues() {
+        this.logger.entry();
 
         if (this.logger.isInfoEnabled()) {
-            for (final var key : client.getKeys().getKeys()) {
-                final var bucket = client.getBucket(key, StringCodec.INSTANCE);
+            for (final var key : this.client.getKeys().getKeys()) {
+                final var bucket = this.client.getBucket(key, StringCodec.INSTANCE);
 
                 this.logger.info("Value of key '{}': {}", key, bucket.get());
             }
         }
+
+        this.logger.exit();
+    }
+
+    /**
+     * Set a more complex object and then get it.
+     */
+    private void setAndGetObject() {
+        this.logger.entry();
+
+        final String bucketName = "config";
+        final RBucket<Config> bucket = this.client.getBucket(bucketName);
+
+        bucket.set(this.config);
+
+        final var myConfig = bucket.get();
+
+        if (this.logger.isInfoEnabled())
+            this.logger.info("Bucket '{}': {}", bucketName, myConfig.toString());
+
+        if (bucket.delete())
+            this.logger.debug("Bucket '{}' deleted", bucketName);
+
+        this.logger.exit();
+    }
+
+    /**
+     * Set an atomic long and do some operations.
+     */
+    private void setAndGetAtomicLong() {
+        this.logger.entry();
+
+        final String atomicLongName = "my-atomic-long";
+        final RAtomicLong atomicLong = this.client.getAtomicLong(atomicLongName);
+
+        atomicLong.set(34567);
+
+        if (atomicLong.compareAndSet(34567, 45678))
+            this.logger.info("{}: {}", atomicLongName, atomicLong.incrementAndGet());
+
+        if (atomicLong.delete())
+            this.logger.debug("AtomicLong '{}' deleted", atomicLongName);
 
         this.logger.exit();
     }
