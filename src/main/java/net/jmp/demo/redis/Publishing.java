@@ -1,10 +1,11 @@
 package net.jmp.demo.redis;
 
 /*
+ * (#)Publishing.java   0.3.0   05/03/2024
  * (#)Publishing.java   0.2.0   05/03/2024
  *
  * @author   Jonathan Parker
- * @version  0.2.0
+ * @version  0.3.0
  * @since    0.2.0
  *
  * MIT License
@@ -43,15 +44,9 @@ import org.slf4j.ext.XLogger;
 /**
  * A class that demonstrates using Redis for publishing and subscribing to a topic.
  */
-final class Publishing {
+final class Publishing extends Demo {
     /** The logger. */
     private final XLogger logger = new XLogger(LoggerFactory.getLogger(this.getClass().getName()));
-
-    /** The application configuration. */
-    private final Config config;
-
-    /** The Redisson client. */
-    private final RedissonClient client;
 
     /**
      * The constructor that takes
@@ -62,13 +57,14 @@ final class Publishing {
      *
      */
     Publishing(final Config config, final RedissonClient client) {
-        super();
-
-        this.config = config;
-        this.client = client;
+        super(config, client);
     }
 
-    void go() {
+    /**
+     * The go method.
+     */
+    @Override
+    public void go() {
         this.logger.entry();
 
         final String topicName = "jonathanp62";
@@ -101,7 +97,7 @@ final class Publishing {
             this.logger.warn("Unable to set one permit for semaphore '{}'", semaphoreName);
 
         if (semaphore.delete())
-            this.logger.info("Semaphore '{}' deleted", semaphoreName);
+            this.logger.debug("Semaphore '{}' deleted", semaphoreName);
 
         this.logger.exit();
     }

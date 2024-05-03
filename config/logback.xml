@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
+ (#)logback.xml 0.3.0   05/03/2024
  (#)logback.xml 0.2.0   05/02/2024
  (#)logback.xml 0.1.0   05/01/2024
 
  @author   Jonathan Parker
- @version  0.2.0
+ @version  0.3.0
  @since    0.1.0
 
  MIT License
@@ -38,25 +39,28 @@
         </encoder>
     </appender>
 
-    <logger name="net.jmp.demo.redis.Caching" additivity="false" level="trace">
+    <logger name="net.jmp.demo.redis.Caching" additivity="false" level="debug">
         <appender-ref ref="MAIN" />
     </logger>
-    <logger name="net.jmp.demo.redis.Connector" additivity="false" level="trace">
+    <logger name="net.jmp.demo.redis.Collections" additivity="false" level="trace">
+        <appender-ref ref="MAIN" />
+    </logger>
+    <logger name="net.jmp.demo.redis.Connector" additivity="false" level="debug">
         <appender-ref ref="MAIN" />
     </logger>
     <logger name="net.jmp.demo.redis.Locking" additivity="false" level="trace">
         <appender-ref ref="MAIN" />
     </logger>
-    <logger name="net.jmp.demo.redis.Main" additivity="false" level="trace">
+    <logger name="net.jmp.demo.redis.Main" additivity="false" level="info">
         <appender-ref ref="MAIN" />
     </logger>
-    <logger name="net.jmp.demo.redis.Publishing" additivity="false" level="trace">
+    <logger name="net.jmp.demo.redis.Publishing" additivity="false" level="debug">
         <appender-ref ref="MAIN" />
     </logger>
     <logger name="org.redisson.connection.ConnectionsHolder" additivity="false" level="off">
         <appender-ref ref="MAIN" />
     </logger>
-    <logger name="org.redisson.Version" additivity="false" level="off">
+    <logger name="org.redisson.Version" additivity="false" level="info">
         <appender-ref ref="MAIN" />
     </logger>
 

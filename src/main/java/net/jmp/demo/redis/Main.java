@@ -1,11 +1,12 @@
 package net.jmp.demo.redis;
 
 /*
+ * (#)Main.java 0.3.0   05/03/2024
  * (#)Main.java 0.2.0   05/01/2024
  * (#)Main.java 0.1.0   05/01/2024
  *
  * @author   Jonathan Parker
- * @version  0.2.0
+ * @version  0.3.0
  * @since    0.1.0
  *
  * MIT License
@@ -38,9 +39,11 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.redisson.api.RedissonClient;
+
 import org.slf4j.LoggerFactory;
 
 import org.slf4j.ext.XLogger;
@@ -76,9 +79,14 @@ public final class Main {
             try {
                 client = this.getClient(appConfig);
 
-                new Caching(appConfig, client).go();
-                new Publishing(appConfig, client).go();
-                new Locking(appConfig, client).go();
+                List<Demo> demos = List.of (
+                        new Caching(appConfig, client),
+                        new Publishing(appConfig, client),
+                        new Collections(appConfig, client),
+                        new Locking(appConfig, client)
+                );
+
+                demos.forEach(Demo::go);
             } finally {
                 if (client != null) {
                     Connector.disconnect(client);

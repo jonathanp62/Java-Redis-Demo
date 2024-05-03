@@ -1,11 +1,12 @@
 package net.jmp.demo.redis;
 
 /*
+ * (#)Caching.java  0.3.0   05/03/2024
  * (#)Caching.java  0.2.0   05/02/2024
  * (#)Caching.java  0.1.0   05/01/2024
  *
  * @author   Jonathan Parker
- * @version  0.2.0
+ * @version  0.3.0
  * @since    0.1.0
  *
  * MIT License
@@ -42,15 +43,9 @@ import org.slf4j.ext.XLogger;
 /*
  * The class that demonstrates using Redis for caching.
  */
-final class Caching {
+final class Caching extends Demo {
     /** The logger. */
     private final XLogger logger = new XLogger(LoggerFactory.getLogger(this.getClass().getName()));
-
-    /** The application configuration. */
-    private final Config config;
-
-    /** The Redisson client. */
-    private final RedissonClient client;
 
     /**
      * The constructor that takes
@@ -61,16 +56,14 @@ final class Caching {
      *
      */
     Caching(final Config config, final RedissonClient client) {
-        super();
-
-        this.config = config;
-        this.client = client;
+        super(config, client);
     }
 
     /**
      * The go method.
      */
-    void go() {
+    @Override
+    public void go() {
         this.logger.entry();
 
         this.listBucketValues();

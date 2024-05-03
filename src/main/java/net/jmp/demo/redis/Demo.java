@@ -1,13 +1,11 @@
 package net.jmp.demo.redis;
 
 /*
- * (#)Locking.java  0.3.0   05/03/2024
- * (#)Locking.java  0.2.0   05/02/2024
- * (#)Locking.java  0.1.0   05/01/2024
+ * (#)Demo.java 0.3.0   05/03/2024
  *
  * @author   Jonathan Parker
  * @version  0.3.0
- * @since    0.1.0
+ * @since    0.3.0
  *
  * MIT License
  *
@@ -34,16 +32,12 @@ package net.jmp.demo.redis;
 
 import org.redisson.api.RedissonClient;
 
-import org.slf4j.LoggerFactory;
+abstract class Demo implements Go {
+    /** The application configuration. */
+    protected final Config config;
 
-import org.slf4j.ext.XLogger;
-
-/*
- * The class that demonstrates using Redis for locking.
- */
-final class Locking extends Demo {
-    /** The logger. */
-    private final XLogger logger = new XLogger(LoggerFactory.getLogger(this.getClass().getName()));
+    /** The Redisson client. */
+    protected final RedissonClient client;
 
     /**
      * The constructor that takes
@@ -52,17 +46,15 @@ final class Locking extends Demo {
      * @param   config  net.jmp.demo.redis.Config
      * @param   client  org.redisson.api.RedissonClient
      */
-    Locking(final Config config, final RedissonClient client) {
-        super(config, client);
+    Demo(final Config config, final RedissonClient client) {
+        super();
+
+        this.config = config;
+        this.client = client;
     }
 
-    /**
-     * The go method.
-     */
     @Override
     public void go() {
-        this.logger.entry();
 
-        this.logger.exit();
     }
 }
