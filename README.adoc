@@ -8,9 +8,10 @@ The configuration is expressed in JSON and is supplied in config/config.json.
 
 * *HostName* The name of the host that the Redis server is listening on
 * *Port* The number of the port that the Redis server is listening on
+* *Protocol* The protocol for the Redis connect string, typically "redis://"
 
 == Logging
 
 Logging is achieved using the SLF4J facade over Logback. The logging configuration is supplied in config/logback.xml.
 
-=== Current version: 0.1.0.
+=== Current version: 0.3.0.
