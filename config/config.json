@@ -2,6 +2,10 @@
   "redis": {
     "hostname": "127.0.0.1",
     "port": 6379,
-    "protocol": "redis://"
+    "protocol": "redis://",
+    "server-cli": {
+      "command": "/usr/local/bin/redis-server",
+      "argument": "--version"
+    }
   }
 }

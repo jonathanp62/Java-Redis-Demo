@@ -34,13 +34,17 @@ package net.jmp.demo.redis;
 
 import com.google.gson.Gson;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
 import java.util.List;
 import java.util.Optional;
+
+import java.util.regex.Pattern;
 
 import org.redisson.api.RedissonClient;
 
@@ -58,6 +62,9 @@ public final class Main {
     /** The logger. */
     private final XLogger logger = new XLogger(LoggerFactory.getLogger(this.getClass().getName()));
 
+    /** A regular expression pattern to get the version from the 'redis-server --version' command. */
+    private final Pattern versionPattern = Pattern.compile("(?i)\\.*v=(?<version>.+?)\\s(?-i)");
+
     /**
      * The default constructor.
      */
@@ -71,7 +78,7 @@ public final class Main {
     private void go() {
         this.logger.entry();
 
-        this.logger.info("Redis-Demo version {}", Version.VERSION);
+        this.logger.info("Redis-Demo {}", Version.VERSION);
 
         this.getAppConfig().ifPresentOrElse(appConfig -> {
             RedissonClient client = null;
@@ -79,7 +86,9 @@ public final class Main {
             try {
                 client = this.getClient(appConfig);
 
-                List<Demo> demos = List.of (
+                this.logServerVersion(appConfig);
+
+                List<Demo> demos = List.of(
                         new Caching(appConfig, client),
                         new Publishing(appConfig, client),
                         new Collections(appConfig, client),
@@ -87,6 +96,8 @@ public final class Main {
                 );
 
                 demos.forEach(Demo::go);
+            } catch (final IOException ioe) {
+                this.logger.catching(ioe);
             } finally {
                 if (client != null) {
                     Connector.disconnect(client);
@@ -144,13 +155,71 @@ public final class Main {
     }
 
     /**
+     * Log the server version.
+     *
+     * @param   config  net.jmp.demo.redis.Config
+     */
+    private void logServerVersion(final Config config) throws IOException {
+        this.logger.entry(config);
+
+        final StringBuilder sb = new StringBuilder();
+        final Process process = new ProcessBuilder(
+                config.getRedis().getServerCLI().getCommand(),
+                        config.getRedis().getServerCLI().getArgument()
+                )
+                .redirectErrorStream(true)
+                .start();
+
+        try (final var processOutputReader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+            String line;
+
+            while ((line = processOutputReader.readLine()) != null) {
+                sb.append(line);
+            }
+
+            process.waitFor();
+
+            if (process.exitValue() == 0) {
+                final var matcher = this.versionPattern.matcher(sb.toString());
+
+                if (matcher.find()) {
+                    final var version = matcher.group("version");
+
+                    if (version != null)
+                        this.logger.info("Redis server {}", version);
+                    else {
+                        if (this.logger.isWarnEnabled())
+                            this.logger.warn("Group 'version' not found in {}", sb.toString());
+                    }
+                } else {
+                    if (this.logger.isWarnEnabled())
+                        this.logger.warn("No match on {}", sb.toString());
+                }
+            } else {
+                if (this.logger.isWarnEnabled())
+                    this.logger.warn(
+                            "Process failed: {}",
+                            process.info().commandLine().orElse(
+                                    config.getRedis().getServerCLI().getCommand() +
+                                            ' ' +
+                                        config.getRedis().getServerCLI().getArgument()
+                            )
+                    );
+            }
+        } catch (final InterruptedException ie) {
+            this.logger.catching(ie);
+            Thread.currentThread().interrupt();     // Restore the interrupt status
+        }
+
+        this.logger.exit();
+    }
+
+    /**
      * The main method.
      *
      * @param   args    java.lang.String[]
      */
     public static void main(final String[] args) {
-        System.out.printf("Redis-Demo version %s%n", Version.VERSION);
-
         new Main().go();
     }
 }
