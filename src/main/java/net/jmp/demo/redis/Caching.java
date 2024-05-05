@@ -32,6 +32,7 @@ package net.jmp.demo.redis;
  * SOFTWARE.
  */
 
+import com.esotericsoftware.kryo.KryoException;
 import org.redisson.api.*;
 
 import org.redisson.client.codec.StringCodec;
@@ -39,6 +40,8 @@ import org.redisson.client.codec.StringCodec;
 import org.slf4j.LoggerFactory;
 
 import org.slf4j.ext.XLogger;
+
+import java.util.List;
 
 /*
  * The class that demonstrates using Redis for caching.
@@ -67,6 +70,7 @@ final class Caching extends Demo {
         this.logger.entry();
 
         this.listBucketValues();
+        this.setAndGetStrings();
         this.setAndGetObject();
         this.setAndGetAtomicLong();
 
@@ -81,11 +85,34 @@ final class Caching extends Demo {
 
         if (this.logger.isInfoEnabled()) {
             for (final var key : this.client.getKeys().getKeys()) {
-                final var bucket = this.client.getBucket(key, StringCodec.INSTANCE);
+                try {
+                    final var bucket = this.client.getBucket(key, StringCodec.INSTANCE);
 
-                this.logger.info("Value of key '{}': {}", key, bucket.get());
+                    this.logger.info("Value of key '{}': {}", key, bucket.get());
+                } catch (final KryoException ke) {
+                    this.logger.catching(ke);
+                }
             }
         }
+
+        this.logger.exit();
+    }
+
+    /**
+     * Set some strings and then get them.
+     */
+    private void setAndGetStrings() {
+        this.logger.entry();
+
+        final List<RBucket<String>> stringBuckets = List.of(
+            this.client.getBucket("one"),
+            this.client.getBucket("two"),
+            this.client.getBucket("three")
+        );
+
+        stringBuckets.forEach(bucket -> bucket.set(bucket.getName().toUpperCase()));
+        stringBuckets.forEach(bucket -> this.logger.info("Key: {}; Value: {}", bucket.getName(), bucket.get()));
+        stringBuckets.forEach(RObject::delete);
 
         this.logger.exit();
     }

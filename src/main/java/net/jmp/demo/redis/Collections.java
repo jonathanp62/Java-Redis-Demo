@@ -33,6 +33,7 @@ package net.jmp.demo.redis;
 import java.util.Map;
 
 import org.redisson.api.RMap;
+import org.redisson.api.RSet;
 import org.redisson.api.RedissonClient;
 
 import org.slf4j.LoggerFactory;
@@ -137,6 +138,23 @@ final class Collections extends Demo {
      */
     private void set() {
         this.logger.entry();
+
+        final RSet<String> composers = this.client.getSet("composers");
+
+        composers.add("Bach");
+        composers.add("Mozart");
+        composers.add("Mahler");
+        composers.add("Beethoven");
+        composers.add("Bruckner");
+        composers.add("Bach");      // Will not be added to the set
+
+        this.logger.info("There are {} items in the 'composers' set", composers.size());
+
+        composers.forEach(composer -> this.logger.info("Composer: {}", composer));
+
+        if (composers.delete())
+            this.logger.debug("Set '{}' deleted", "composers");
+
         this.logger.exit();
     }
 
