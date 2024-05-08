@@ -114,6 +114,11 @@ final class Caching extends Demo {
         stringBuckets.forEach(bucket -> this.logger.info("Key: {}; Value: {}", bucket.getName(), bucket.get()));
         stringBuckets.forEach(RObject::delete);
 
+        final var one = this.client.getBucket("one");
+
+        if (one.get() == null)
+            this.logger.info("Key 'one' was not found");
+
         this.logger.exit();
     }
 
@@ -135,6 +140,11 @@ final class Caching extends Demo {
 
         if (bucket.delete())
             this.logger.debug("Bucket '{}' deleted", bucketName);
+
+        final var config = this.client.getBucket(bucketName);
+
+        if (config.get() == null)
+            this.logger.info("Bucket '{}' was not found", bucketName);
 
         this.logger.exit();
     }

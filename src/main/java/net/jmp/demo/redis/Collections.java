@@ -32,6 +32,7 @@ package net.jmp.demo.redis;
 
 import java.util.Map;
 
+import org.redisson.api.RList;
 import org.redisson.api.RMap;
 import org.redisson.api.RSet;
 import org.redisson.api.RedissonClient;
@@ -163,6 +164,22 @@ final class Collections extends Demo {
      */
     private void list() {
         this.logger.entry();
+
+        final RList<Integer> ages = this.client.getList("ages");
+
+        ages.add(62);
+        ages.add(60);
+        ages.add(69);
+        ages.add(35);
+        ages.add(31);
+
+        this.logger.info("There are {} items in the 'ages' list", ages.size());
+
+        ages.forEach(age -> this.logger.info("Age: {}", age));
+
+        if (ages.delete())
+            this.logger.debug("List '{}' deleted", "ages");
+
         this.logger.exit();
     }
 }
