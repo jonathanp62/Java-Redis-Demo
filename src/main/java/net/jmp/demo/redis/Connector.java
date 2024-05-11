@@ -1,10 +1,11 @@
 package net.jmp.demo.redis;
 
 /*
+ * (#)Connector.java    0.3.0   05/11/2024
  * (#)Connector.java    0.2.0   05/02/2024
  *
  * @author   Jonathan Parker
- * @version  0.2.0
+ * @version  0.3.0
  * @since    0.2.0
  *
  * MIT License
@@ -84,6 +85,7 @@ final class Connector {
         final var config = new Config();
 
         config.useSingleServer().setAddress(this.protocol + this.hostName + ":" + this.port);
+        config.setCodec(new CustomKryo5Codec());
 
         final var client = Redisson.create(config);
 

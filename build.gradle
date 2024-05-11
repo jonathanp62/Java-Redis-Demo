@@ -50,10 +50,7 @@ application {
 
 repositories {
     mavenLocal()
-
-    maven {
-        url = uri('https://repo.maven.apache.org/maven2/')
-    }
+    mavenCentral()  // url = uri('https://repo.maven.apache.org/maven2/')
 
     maven {
         url = uri('http://maven.repository.redhat.com/techpreview/all')
@@ -99,12 +96,12 @@ publishing {
     }
 }
 
-tasks.withType(JavaCompile) {
+tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
     options.release.set(21)
 }
 
-tasks.withType(Javadoc) {
+tasks.withType(Javadoc).configureEach {
     options.encoding = 'UTF-8'
 }
 
@@ -112,7 +109,7 @@ tasks.withType(Javadoc) {
  * Execute with - gradle execProgram instead of gradle run
  */
 
-task execProgram(type: JavaExec) {
+tasks.register('execProgram', JavaExec) {
     allJvmArgs = ['-ea', '-Dlogback.configurationFile=config/logback.xml']
     classpath = sourceSets.main.runtimeClasspath
     description = "Run the main class with JavaExecTask"
