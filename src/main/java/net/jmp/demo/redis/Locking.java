@@ -33,6 +33,9 @@ package net.jmp.demo.redis;
  * SOFTWARE.
  */
 
+import org.redisson.RedissonMultiLock;
+
+import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 
 import org.slf4j.LoggerFactory;
@@ -66,6 +69,7 @@ final class Locking extends Demo {
 
         this.lock();
         this.multiLock();
+        this.readWriteLock();
 
         this.logger.exit();
     }
@@ -75,6 +79,25 @@ final class Locking extends Demo {
      */
     private void lock() {
         this.logger.entry();
+
+        final RLock myLock = this.client.getLock("my-lock");
+
+        try {
+            myLock.lock();
+
+            this.logger.info("Acquired 'my-lock'");
+
+            for (int i = 0; i < 10_000; i++) {
+                ;
+            }
+        } catch (final Throwable t) {
+            this.logger.catching(t);
+        } finally {
+            myLock.unlock();
+
+            this.logger.info("Released 'my-lock'");
+        }
+
         this.logger.exit();
     }
 
@@ -82,6 +105,37 @@ final class Locking extends Demo {
      * Work with multi-lock.
      */
     private void multiLock() {
+        this.logger.entry();
+
+        final RLock myLock1 = this.client.getLock("my-lock-1");
+        final RLock myLock2 = this.client.getLock("my-lock-2");
+        final RLock myLock3 = this.client.getLock("my-lock-3");
+
+        final RedissonMultiLock myLock = new RedissonMultiLock(myLock1, myLock2, myLock3);
+
+        try {
+            myLock.lock();
+
+            this.logger.info("Acquired 'multi-lock'");
+
+            for (int i = 0; i < 10_000; i++) {
+                ;
+            }
+        } catch (final Throwable t) {
+            this.logger.catching(t);
+        } finally {
+            myLock.unlock();
+
+            this.logger.info("Released 'multi-lock'");
+        }
+
+        this.logger.exit();
+    }
+
+    /**
+     * Work with the read-write lock.
+     */
+    private void readWriteLock() {
         this.logger.entry();
         this.logger.exit();
     }
