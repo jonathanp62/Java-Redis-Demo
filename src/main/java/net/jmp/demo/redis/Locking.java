@@ -35,6 +35,7 @@ package net.jmp.demo.redis;
 
 import org.redisson.RedissonMultiLock;
 
+import org.redisson.api.RCountDownLatch;
 import org.redisson.api.RLock;
 import org.redisson.api.RReadWriteLock;
 import org.redisson.api.RSemaphore;
@@ -271,10 +272,31 @@ final class Locking extends Demo {
     }
 
     /**
-     * Work with a count-down latch.
+     * Work with a count-down latch. Notice that
+     * countdown latches need to be deleted but
+     * locks do not.
      */
     private void countdownLatch() {
         this.logger.entry();
+
+        final RCountDownLatch latch = this.client.getCountDownLatch("my-countdown-latch");
+
+        try {
+            if (latch.trySetCount(1)) {
+                this.logger.info("Set 'count-down latch' to 1");
+
+                if (latch.getCount() == 1)
+                    latch.countDown();
+
+                if (latch.getCount() == 0)
+                    this.logger.info("Latch 'count-down latch' is 0");
+            }
+        } catch (final Exception e) {
+            this.logger.catching(e);
+        } finally {
+            latch.delete();
+        }
+
         this.logger.exit();
     }
 
