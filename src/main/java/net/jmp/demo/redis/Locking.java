@@ -1,12 +1,13 @@
 package net.jmp.demo.redis;
 
 /*
+ * (#)Locking.java  0.4.0   05/17/2024
  * (#)Locking.java  0.3.0   05/03/2024
  * (#)Locking.java  0.2.0   05/02/2024
  * (#)Locking.java  0.1.0   05/01/2024
  *
  * @author   Jonathan Parker
- * @version  0.3.0
+ * @version  0.4.0
  * @since    0.1.0
  *
  * MIT License
@@ -63,6 +64,25 @@ final class Locking extends Demo {
     public void go() {
         this.logger.entry();
 
+        this.lock();
+        this.multiLock();
+
+        this.logger.exit();
+    }
+
+    /**
+     * Work with lock.
+     */
+    private void lock() {
+        this.logger.entry();
+        this.logger.exit();
+    }
+
+    /**
+     * Work with multi-lock.
+     */
+    private void multiLock() {
+        this.logger.entry();
         this.logger.exit();
     }
 }
