@@ -36,6 +36,7 @@ package net.jmp.demo.redis;
 import org.redisson.RedissonMultiLock;
 
 import org.redisson.api.RLock;
+import org.redisson.api.RReadWriteLock;
 import org.redisson.api.RedissonClient;
 
 import org.slf4j.LoggerFactory;
@@ -80,22 +81,26 @@ final class Locking extends Demo {
     private void lock() {
         this.logger.entry();
 
-        final RLock myLock = this.client.getLock("my-lock");
+        final RLock myLock = this.client.getLock("lock");
 
         try {
-            myLock.lock();
+            if (!myLock.isLocked()) {
+                myLock.lock();
 
-            this.logger.info("Acquired 'my-lock'");
+                this.logger.info("Acquired 'my-lock'");
 
-            for (int i = 0; i < 10_000; i++) {
-                ;
+                this.spin();
+
+                myLock.unlock();
+
+                this.logger.info("Released 'my-lock'");
             }
-        } catch (final Throwable t) {
-            this.logger.catching(t);
-        } finally {
+        } catch (final Exception e) {
+            this.logger.catching(e);
+
             myLock.unlock();
 
-            this.logger.info("Released 'my-lock'");
+            this.logger.warn("Released 'my-lock'");
         }
 
         this.logger.exit();
@@ -107,26 +112,30 @@ final class Locking extends Demo {
     private void multiLock() {
         this.logger.entry();
 
-        final RLock myLock1 = this.client.getLock("my-lock-1");
-        final RLock myLock2 = this.client.getLock("my-lock-2");
-        final RLock myLock3 = this.client.getLock("my-lock-3");
+        final RLock myLock1 = this.client.getLock("lock-1");
+        final RLock myLock2 = this.client.getLock("lock-2");
+        final RLock myLock3 = this.client.getLock("lock-3");
 
         final RedissonMultiLock myLock = new RedissonMultiLock(myLock1, myLock2, myLock3);
 
         try {
-            myLock.lock();
+            if (!myLock1.isLocked() && !myLock2.isLocked() && !myLock3.isLocked()) {
+                myLock.lock();
 
-            this.logger.info("Acquired 'multi-lock'");
+                this.logger.info("Acquired 'multi-lock'");
 
-            for (int i = 0; i < 10_000; i++) {
-                ;
+                this.spin();
+
+                myLock.unlock();
+
+                this.logger.info("Released 'multi-lock'");
             }
-        } catch (final Throwable t) {
-            this.logger.catching(t);
-        } finally {
+        } catch (final Exception e) {
+            this.logger.catching(e);
+
             myLock.unlock();
 
-            this.logger.info("Released 'multi-lock'");
+            this.logger.warn("Released 'multi-lock'");
         }
 
         this.logger.exit();
@@ -137,6 +146,92 @@ final class Locking extends Demo {
      */
     private void readWriteLock() {
         this.logger.entry();
+
+        this.readOnlyLock();
+        this.writeOnlyLock();
+
+        this.logger.exit();
+    }
+
+    /**
+     * Work with the read-only lock.
+     */
+    private void readOnlyLock() {
+        this.logger.entry();
+
+        final RReadWriteLock rwLock = this.client.getReadWriteLock("read-write-lock-1");
+        final RLock myLock = rwLock.readLock();
+
+        try {
+            if (!myLock.isLocked()) {
+                myLock.lock();
+
+                this.logger.info("Acquired 'read-lock'");
+
+                this.spin();
+
+                myLock.unlock();
+
+                this.logger.info("Released 'read-lock'");
+            }
+        } catch (final Exception e) {
+            this.logger.catching(e);
+
+            myLock.unlock();
+
+            this.logger.warn("Released 'read-lock'");
+        }
+
+        this.logger.exit();
+    }
+
+    /**
+     * Work with the write-only lock. The write
+     * lock is not obtainable if the read lock
+     * is already held so one does not obtain the
+     * read lock and then escalalate to the write
+     * lock.
+     */
+    private void writeOnlyLock() {
+        this.logger.entry();
+
+        final RReadWriteLock rwLock = this.client.getReadWriteLock("read-write-lock-2");
+        final RLock myLock = rwLock.writeLock();
+
+        try {
+            if (!myLock.isLocked()) {
+                myLock.lock();
+
+                this.logger.info("Acquired 'write-lock'");
+
+                this.spin();
+
+                myLock.unlock();
+
+                this.logger.info("Released 'write-lock'");
+            }
+        } catch (final Exception e) {
+            this.logger.catching(e);
+
+            myLock.unlock();
+
+            this.logger.warn("Released 'write-lock'");
+        }
+
+        this.logger.exit();
+    }
+
+    /**
+     * Perform a 'long' running operation.
+     */
+    private void spin() {
+        this.logger.entry();
+
+        int x = 10_000;
+
+        while (x > 0)
+            x--;
+
         this.logger.exit();
     }
 }

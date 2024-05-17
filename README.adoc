@@ -33,5 +33,6 @@ Logging is achieved using the SLF4J facade over Logback. The logging configurati
 
 https://www.baeldung.com/redis-redisson
 https://github.com/redisson/redisson/wiki/Table-of-Content
+https://javadoc.io/doc/org.redisson/redisson/latest/index.html
 
 === Current version: 0.4.0.
