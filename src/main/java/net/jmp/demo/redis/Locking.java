@@ -37,6 +37,7 @@ import org.redisson.RedissonMultiLock;
 
 import org.redisson.api.RLock;
 import org.redisson.api.RReadWriteLock;
+import org.redisson.api.RSemaphore;
 import org.redisson.api.RedissonClient;
 
 import org.slf4j.LoggerFactory;
@@ -71,6 +72,8 @@ final class Locking extends Demo {
         this.lock();
         this.multiLock();
         this.readWriteLock();
+        this.semaphore();
+        this.countdownLatch();
 
         this.logger.exit();
     }
@@ -218,6 +221,60 @@ final class Locking extends Demo {
             this.logger.warn("Released 'write-lock'");
         }
 
+        this.logger.exit();
+    }
+
+    /**
+     * Work with a semaphore. Notice that
+     * semaphores need to be deleted but
+     * locks do not.
+     */
+    private void semaphore() {
+        this.logger.entry();
+
+        final RSemaphore semaphore = this.client.getSemaphore("my-semaphore");
+
+        try {
+            if (semaphore.trySetPermits(1)) {
+                semaphore.acquire();    // Acquire a permit (permits = 0)
+
+                if (semaphore.availablePermits() == 0) {
+                    this.logger.info("Acquired 'semaphore'");
+
+                    this.spin();
+
+                    semaphore.release();    // Release a permit (permits = 1)
+
+                    if (semaphore.availablePermits() == 1)
+                        this.logger.info("Released 'semaphore'");
+                    else
+                        this.logger.warn("Failed to release 'semaphore'");
+                }
+                else
+                    this.logger.info("Failed to acquire 'semaphore'");
+            }
+            else
+                this.logger.warn("Unable to set one permit for 'semaphore'");
+        } catch (final Exception e) {
+            this.logger.catching(e);
+
+            if (semaphore.availablePermits() > 0) {
+                semaphore.release();
+
+                this.logger.warn("Released 'semaphore'");
+            }
+        } finally {
+            semaphore.delete();
+        }
+
+        this.logger.exit();
+    }
+
+    /**
+     * Work with a count-down latch.
+     */
+    private void countdownLatch() {
+        this.logger.entry();
         this.logger.exit();
     }
 
