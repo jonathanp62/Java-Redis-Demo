@@ -1,12 +1,13 @@
 package net.jmp.demo.redis;
 
 /*
+ * (#)Main.java 0.4.0   05/17/2024
  * (#)Main.java 0.3.0   05/03/2024
  * (#)Main.java 0.2.0   05/01/2024
  * (#)Main.java 0.1.0   05/01/2024
  *
  * @author   Jonathan Parker
- * @version  0.3.0
+ * @version  0.4.0
  * @since    0.1.0
  *
  * MIT License
@@ -78,7 +79,7 @@ public final class Main {
     private void go() {
         this.logger.entry();
 
-        this.logger.info("Redis-Demo {}", Version.VERSION);
+        this.logger.info("Redis-Demo {}", Version.VERSION_STRING);
 
         this.getAppConfig().ifPresentOrElse(appConfig -> {
             RedissonClient client = null;
