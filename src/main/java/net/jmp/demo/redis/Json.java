@@ -30,8 +30,13 @@ package net.jmp.demo.redis;
  * SOFTWARE.
  */
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import org.redisson.api.RJsonBucket;
 import org.redisson.api.RedissonClient;
 
+import org.redisson.client.RedisException;
+import org.redisson.codec.JacksonCodec;
+import org.redisson.codec.JsonCodec;
 import org.slf4j.LoggerFactory;
 
 import org.slf4j.ext.XLogger;
@@ -61,6 +66,51 @@ final class Json extends Demo {
     @Override
     public void go() {
         this.logger.entry();
+
+        final RJsonBucket<Config> bucket = this.client.getJsonBucket("my-config", new JacksonCodec<>(Config.class));
+        final String path = ".";
+
+        try {
+            if (bucket.setIfAbsent(path, this.config))
+                this.logger.info("Set the 'my-config' JSON bucket");
+            else {
+                this.logger.info("Did not set the 'my-config' JSON bucket");
+
+                final Config myConfig = bucket.get();
+
+                if (myConfig.equals(this.config))
+                    this.logger.info("Serialized/deserialized config matches config object");
+                else
+                    this.logger.info("Serialized/deserialized config does not match config object");
+
+                this.logger.info("There are {} keys in the root", bucket.countKeys());
+                this.logger.info("There are {} keys in the redis section", bucket.countKeys("redis"));
+                this.logger.info("There are {} keys in the serverCLI section", bucket.countKeys("redis.serverCLI"));
+
+                final var port = bucket.get(new JacksonCodec<>(new TypeReference<Integer>() {
+                }), "redis.port");
+
+                final var hostName = bucket.get(new JacksonCodec<>(new TypeReference<String>() {
+                }), "redis.hostName");
+
+                final var serverCli = bucket.get(new JacksonCodec<>(new TypeReference<ServerCLI>() {
+                }), "redis.serverCLI");
+
+                final var redis = bucket.get(new JacksonCodec<>(new TypeReference<Redis>() {
+                }), "redis");
+
+                this.logger.info("The port              : {}", port);
+                this.logger.info("The host name         : {}", hostName);
+                this.logger.info("The server-cli section: {}", serverCli);
+                this.logger.info("The redis section     : {}", redis);
+
+                // Note: This fails if the path does not refer to a string
+
+                this.logger.info("The string size of the redis.serverCLI.command is {}", bucket.stringSize("redis.serverCLI.command"));
+            }
+        } catch (final RedisException re) {
+            this.logger.catching(re);
+        }
 
         this.logger.exit();
     }

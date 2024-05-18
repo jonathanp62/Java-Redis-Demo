@@ -1,10 +1,11 @@
 package net.jmp.demo.redis;
 
 /*
+ * (#)ServerCLI.java    0.5.0   05/18/2024
  * (#)ServerCLI.java    0.3.0   05/04/2024
  *
  * @author    Jonathan Parker
- * @version   0.3.0
+ * @version   0.5.0
  * @since     0.3.0
  *
  * MIT License
@@ -31,6 +32,8 @@ package net.jmp.demo.redis;
  */
 
 import com.google.gson.annotations.SerializedName;
+
+import java.util.Objects;
 
 final class ServerCLI {
     /** The command. */
@@ -78,10 +81,30 @@ final class ServerCLI {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+
+        if (o == null || getClass() != o.getClass()) return false;
+
+        final ServerCLI serverCLI = (ServerCLI) o;
+
+        return Objects.equals(this.command, serverCLI.command) && Objects.equals(this.argument, serverCLI.argument);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = Objects.hashCode(this.command);
+
+        result = 31 * result + Objects.hashCode(this.argument);
+
+        return result;
+    }
+
+    @Override
     public String toString() {
         return "ServerCLI{" +
-                "command='" + command + '\'' +
-                ", argument='" + argument + '\'' +
+                "command='" + this.command + '\'' +
+                ", argument='" + this.argument + '\'' +
                 '}';
     }
 }

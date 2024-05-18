@@ -1,10 +1,11 @@
 package net.jmp.demo.redis;
 
 /*
+ * (#)Config.java   0.5.0   05/18/2024
  * (#)Config.java   0.1.0   05/01/2024
  *
  * @author    Jonathan Parker
- * @version   0.1.0
+ * @version   0.5.0
  * @since     0.1.0
  *
  * MIT License
@@ -32,6 +33,8 @@ package net.jmp.demo.redis;
 
 import com.google.gson.annotations.SerializedName;
 
+import java.util.Objects;
+
 /**
  * The configuration class.
  */
@@ -58,6 +61,22 @@ final class Config {
         this.redis = redis;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+
+        if (o == null || getClass() != o.getClass()) return false;
+
+        final Config config = (Config) o;
+
+        return Objects.equals(this.redis, config.redis);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(this.redis);
+    }
+
     /**
      * The to-string method.
      *
@@ -66,7 +85,7 @@ final class Config {
     @Override
     public String toString() {
         return "Config{" +
-                "redis=" + redis +
+                "redis=" + this.redis +
                 '}';
     }
 }

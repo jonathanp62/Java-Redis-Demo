@@ -1,12 +1,13 @@
 package net.jmp.demo.redis;
 
 /*
+ * (#)Config.java   0.5.0   05/18/2024
  * (#)Config.java   0.3.0   05/04/2024
  * (#)Config.java   0.2.0   05/02/2024
  * (#)Config.java   0.1.0   05/01/2024
  *
  * @author    Jonathan Parker
- * @version   0.3.0
+ * @version   0.5.0
  * @since     0.1.0
  *
  * MIT License
@@ -33,6 +34,8 @@ package net.jmp.demo.redis;
  */
 
 import com.google.gson.annotations.SerializedName;
+
+import java.util.Objects;
 
 /**
  * The Redis configuration class.
@@ -126,6 +129,28 @@ final class Redis {
         this.serverCLI = serverCLI;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+
+        if (o == null || getClass() != o.getClass()) return false;
+
+        final Redis redis = (Redis) o;
+
+        return this.port == redis.port && Objects.equals(this.hostName, redis.hostName) && Objects.equals(this.protocol, redis.protocol) && Objects.equals(this.serverCLI, redis.serverCLI);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = Objects.hashCode(this.hostName);
+
+        result = 31 * result + this.port;
+        result = 31 * result + Objects.hashCode(this.protocol);
+        result = 31 * result + Objects.hashCode(this.serverCLI);
+
+        return result;
+    }
+
     /**
      * The to-string method.
      *
@@ -134,10 +159,10 @@ final class Redis {
     @Override
     public String toString() {
         return "Redis{" +
-                "hostName='" + hostName + '\'' +
-                ", port=" + port +
-                ", protocol=" + protocol +
-                ", serverCLI=" + serverCLI +
+                "hostName='" + this.hostName + '\'' +
+                ", port=" + this.port +
+                ", protocol=" + this.protocol +
+                ", serverCLI=" + this.serverCLI +
                 '}';
     }
 }
