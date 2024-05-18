@@ -1,13 +1,14 @@
 package net.jmp.demo.redis;
 
 /*
+ * (#)Main.java 0.5.0   05/18/2024
  * (#)Main.java 0.4.0   05/17/2024
  * (#)Main.java 0.3.0   05/03/2024
  * (#)Main.java 0.2.0   05/01/2024
  * (#)Main.java 0.1.0   05/01/2024
  *
  * @author   Jonathan Parker
- * @version  0.4.0
+ * @version  0.5.0
  * @since    0.1.0
  *
  * MIT License
@@ -89,11 +90,12 @@ public final class Main {
 
                 this.logServerVersion(appConfig);
 
-                List<Demo> demos = List.of(
+                final List<Demo> demos = List.of(
                         new Caching(appConfig, client),
                         new Publishing(appConfig, client),
                         new Collections(appConfig, client),
-                        new Locking(appConfig, client)
+                        new Locking(appConfig, client),
+                        new Json(appConfig, client)
                 );
 
                 demos.forEach(Demo::go);
