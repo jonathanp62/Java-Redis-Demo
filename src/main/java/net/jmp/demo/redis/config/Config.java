@@ -1,4 +1,4 @@
-package net.jmp.demo.redis;
+package net.jmp.demo.redis.config;
 
 /*
  * (#)Config.java   0.5.0   05/18/2024
@@ -38,7 +38,7 @@ import java.util.Objects;
 /**
  * The configuration class.
  */
-final class Config {
+public final class Config {
     /** The Redis component. */
     @SerializedName("redis")
     private Redis redis;
@@ -48,7 +48,7 @@ final class Config {
      *
      * @return  net.jmp.demo.redis.Redis
      */
-    Redis getRedis() {
+    public Redis getRedis() {
         return this.redis;
     }
 
@@ -57,7 +57,7 @@ final class Config {
      *
      * @param   redis   net.jmp.demo.redis.Redis
      */
-    void setRedis(final Redis redis) {
+    public void setRedis(final Redis redis) {
         this.redis = redis;
     }
 

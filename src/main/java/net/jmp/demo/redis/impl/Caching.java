@@ -1,4 +1,4 @@
-package net.jmp.demo.redis;
+package net.jmp.demo.redis.impl;
 
 /*
  * (#)Caching.java  0.5.0   05/18/2024
@@ -35,6 +35,8 @@ package net.jmp.demo.redis;
 
 import com.esotericsoftware.kryo.KryoException;
 
+import java.util.List;
+
 import org.redisson.api.*;
 
 import org.redisson.client.codec.StringCodec;
@@ -45,12 +47,14 @@ import org.slf4j.LoggerFactory;
 
 import org.slf4j.ext.XLogger;
 
-import java.util.List;
+import net.jmp.demo.redis.api.Demo;
+
+import net.jmp.demo.redis.config.Config;
 
 /*
  * The class that demonstrates using Redis for caching.
  */
-final class Caching extends Demo {
+public final class Caching extends Demo {
     /** The logger. */
     private final XLogger logger = new XLogger(LoggerFactory.getLogger(this.getClass().getName()));
 
@@ -62,7 +66,7 @@ final class Caching extends Demo {
      * @param   client  org.redisson.api.RedissonClient
      *
      */
-    Caching(final Config config, final RedissonClient client) {
+    public Caching(final Config config, final RedissonClient client) {
         super(config, client);
     }
 

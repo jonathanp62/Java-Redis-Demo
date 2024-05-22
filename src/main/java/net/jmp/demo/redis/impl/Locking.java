@@ -1,4 +1,4 @@
-package net.jmp.demo.redis;
+package net.jmp.demo.redis.impl;
 
 /*
  * (#)Locking.java  0.4.0   05/17/2024
@@ -45,10 +45,14 @@ import org.slf4j.LoggerFactory;
 
 import org.slf4j.ext.XLogger;
 
+import net.jmp.demo.redis.api.Demo;
+
+import net.jmp.demo.redis.config.Config;
+
 /*
  * The class that demonstrates using Redis for locking.
  */
-final class Locking extends Demo {
+public final class Locking extends Demo {
     /** The logger. */
     private final XLogger logger = new XLogger(LoggerFactory.getLogger(this.getClass().getName()));
 
@@ -59,7 +63,7 @@ final class Locking extends Demo {
      * @param   config  net.jmp.demo.redis.Config
      * @param   client  org.redisson.api.RedissonClient
      */
-    Locking(final Config config, final RedissonClient client) {
+    public Locking(final Config config, final RedissonClient client) {
         super(config, client);
     }
 

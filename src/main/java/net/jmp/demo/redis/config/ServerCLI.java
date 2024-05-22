@@ -1,4 +1,4 @@
-package net.jmp.demo.redis;
+package net.jmp.demo.redis.config;
 
 /*
  * (#)ServerCLI.java    0.5.0   05/18/2024
@@ -35,7 +35,7 @@ import com.google.gson.annotations.SerializedName;
 
 import java.util.Objects;
 
-final class ServerCLI {
+public final class ServerCLI {
     /** The command. */
     @SerializedName("command")
     private String command;
@@ -49,7 +49,7 @@ final class ServerCLI {
      *
      * @return  java.lang.String
      */
-    String getCommand() {
+    public String getCommand() {
         return this.command;
     }
 
@@ -58,7 +58,7 @@ final class ServerCLI {
      *
      * @param   command java.lang.String
      */
-    void setCommand(final String command) {
+    public void setCommand(final String command) {
         this.command = command;
     }
 
@@ -67,7 +67,7 @@ final class ServerCLI {
      *
      * @return  java.lang.String
      */
-    String getArgument() {
+    public String getArgument() {
         return this.argument;
     }
 
@@ -76,7 +76,7 @@ final class ServerCLI {
      *
      * @param   argument    java.lang.String
      */
-    void setArgument(final String argument) {
+    public void setArgument(final String argument) {
         this.argument = argument;
     }
 

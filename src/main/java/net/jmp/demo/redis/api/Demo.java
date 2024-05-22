@@ -1,4 +1,4 @@
-package net.jmp.demo.redis;
+package net.jmp.demo.redis.api;
 
 /*
  * (#)Demo.java 0.3.0   05/03/2024
@@ -32,7 +32,9 @@ package net.jmp.demo.redis;
 
 import org.redisson.api.RedissonClient;
 
-abstract class Demo implements Go {
+import net.jmp.demo.redis.config.Config;
+
+public abstract class Demo implements Go {
     /** The application configuration. */
     protected final Config config;
 
@@ -46,7 +48,7 @@ abstract class Demo implements Go {
      * @param   config  net.jmp.demo.redis.Config
      * @param   client  org.redisson.api.RedissonClient
      */
-    Demo(final Config config, final RedissonClient client) {
+    protected Demo(final Config config, final RedissonClient client) {
         super();
 
         this.config = config;
@@ -55,6 +57,5 @@ abstract class Demo implements Go {
 
     @Override
     public void go() {
-
     }
 }
