@@ -1,11 +1,11 @@
-package net.jmp.demo.redis;
+package net.jmp.demo.redis.api;
 
 /*
- * (#)ServerCLI.java    0.3.0   05/04/2024
+ * (#)Demo.java 0.3.0   05/03/2024
  *
- * @author    Jonathan Parker
- * @version   0.3.0
- * @since     0.3.0
+ * @author   Jonathan Parker
+ * @version  0.3.0
+ * @since    0.3.0
  *
  * MIT License
  *
@@ -30,58 +30,32 @@ package net.jmp.demo.redis;
  * SOFTWARE.
  */
 
-import com.google.gson.annotations.SerializedName;
+import org.redisson.api.RedissonClient;
 
-final class ServerCLI {
-    /** The command. */
-    @SerializedName("command")
-    private String command;
+import net.jmp.demo.redis.config.Config;
 
-    /** The argument. */
-    @SerializedName("argument")
-    private String argument;
+public abstract class Demo implements Go {
+    /** The application configuration. */
+    protected final Config config;
 
-    /**
-     * Get the command.
-     *
-     * @return  java.lang.String
-     */
-    String getCommand() {
-        return this.command;
-    }
+    /** The Redisson client. */
+    protected final RedissonClient client;
 
     /**
-     * Set the command.
+     * The constructor that takes
+     * the application configuration.
      *
-     * @param   command java.lang.String
+     * @param   config  net.jmp.demo.redis.Config
+     * @param   client  org.redisson.api.RedissonClient
      */
-    void setCommand(final String command) {
-        this.command = command;
-    }
+    protected Demo(final Config config, final RedissonClient client) {
+        super();
 
-    /**
-     * Get the argument.
-     *
-     * @return  java.lang.String
-     */
-    String getArgument() {
-        return this.argument;
-    }
-
-    /**
-     * Set the argument.
-     *
-     * @param   argument    java.lang.String
-     */
-    void setArgument(final String argument) {
-        this.argument = argument;
+        this.config = config;
+        this.client = client;
     }
 
     @Override
-    public String toString() {
-        return "ServerCLI{" +
-                "command='" + command + '\'' +
-                ", argument='" + argument + '\'' +
-                '}';
+    public void go() {
     }
 }

@@ -1,4 +1,4 @@
-package net.jmp.demo.redis;
+package net.jmp.demo.redis.api;
 
 /*
  * (#)Go.java   0.3.0   05/03/2024
@@ -37,5 +37,5 @@ public interface Go {
     /**
      * The go method.
      */
-    void go();
+    public void go();
 }

@@ -53,6 +53,12 @@ import org.slf4j.LoggerFactory;
 
 import org.slf4j.ext.XLogger;
 
+import net.jmp.demo.redis.api.Demo;
+
+import net.jmp.demo.redis.config.Config;
+
+import net.jmp.demo.redis.impl.*;
+
 /*
  * The application's main class.
  */

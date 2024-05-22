@@ -1,4 +1,4 @@
-package net.jmp.demo.redis;
+package net.jmp.demo.redis.config;
 
 /*
  * (#)Config.java   0.3.0   05/04/2024
@@ -37,7 +37,7 @@ import com.google.gson.annotations.SerializedName;
 /**
  * The Redis configuration class.
  */
-final class Redis {
+public final class Redis {
     /** The host name. */
     @SerializedName("hostname")
     private String hostName;
@@ -59,7 +59,7 @@ final class Redis {
      *
      * @return  java.lang.String
      */
-    String getHostName() {
+    public String getHostName() {
         return this.hostName;
     }
 
@@ -68,7 +68,7 @@ final class Redis {
      *
      * @param   hostName    java.lang.String
      */
-    void setHostName(final String hostName) {
+    public void setHostName(final String hostName) {
         this.hostName = hostName;
     }
 
@@ -77,7 +77,7 @@ final class Redis {
      *
      * @return  int
      */
-    int getPort() {
+    public int getPort() {
         return this.port;
     }
 
@@ -86,7 +86,7 @@ final class Redis {
      *
      * @param   port    int
      */
-    void setPort(final int port) {
+    public void setPort(final int port) {
         this.port = port;
     }
 
@@ -95,7 +95,7 @@ final class Redis {
      *
      * @return  java.lang.String
      */
-    String getProtocol() {
+    public String getProtocol() {
         return this.protocol;
     }
 
@@ -104,7 +104,7 @@ final class Redis {
      *
      * @param   protocol    java.lang.String
      */
-    void setProtocol(final String protocol) {
+    public void setProtocol(final String protocol) {
         this.protocol = protocol;
     }
 
@@ -113,7 +113,7 @@ final class Redis {
      *
      * @return  net.jmp.demo.redis.ServerCLI
      */
-    ServerCLI getServerCLI() {
+    public ServerCLI getServerCLI() {
         return this.serverCLI;
     }
 
@@ -122,7 +122,7 @@ final class Redis {
      *
      * @param   serverCLI   net.jmp.demo.redis.ServerCLI
      */
-    void setServerCLI(final ServerCLI serverCLI) {
+    public void setServerCLI(final ServerCLI serverCLI) {
         this.serverCLI = serverCLI;
     }
 

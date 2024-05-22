@@ -1,4 +1,4 @@
-package net.jmp.demo.redis;
+package net.jmp.demo.redis.impl;
 
 /*
  * (#)Collections.java  0.3.0   05/03/2024
@@ -41,11 +41,15 @@ import org.slf4j.LoggerFactory;
 
 import org.slf4j.ext.XLogger;
 
+import net.jmp.demo.redis.api.Demo;
+
+import net.jmp.demo.redis.config.Config;
+
 /*
  * The class that demonstrates using Redis for
  * collections, in this case map, set, and list.
  */
-final class Collections extends Demo {
+public final class Collections extends Demo {
     /** The logger. */
     private final XLogger logger = new XLogger(LoggerFactory.getLogger(this.getClass().getName()));
 
@@ -57,7 +61,7 @@ final class Collections extends Demo {
      * @param   client  org.redisson.api.RedissonClient
      *
      */
-    Collections(final Config config, final RedissonClient client) {
+    public Collections(final Config config, final RedissonClient client) {
         super(config, client);
     }
 

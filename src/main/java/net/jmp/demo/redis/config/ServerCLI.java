@@ -1,11 +1,11 @@
-package net.jmp.demo.redis;
+package net.jmp.demo.redis.config;
 
 /*
- * (#)Config.java   0.1.0   05/01/2024
+ * (#)ServerCLI.java    0.3.0   05/04/2024
  *
  * @author    Jonathan Parker
- * @version   0.1.0
- * @since     0.1.0
+ * @version   0.3.0
+ * @since     0.3.0
  *
  * MIT License
  *
@@ -32,41 +32,56 @@ package net.jmp.demo.redis;
 
 import com.google.gson.annotations.SerializedName;
 
-/**
- * The configuration class.
- */
-final class Config {
-    /** The Redis component. */
-    @SerializedName("redis")
-    private Redis redis;
+public final class ServerCLI {
+    /** The command. */
+    @SerializedName("command")
+    private String command;
+
+    /** The argument. */
+    @SerializedName("argument")
+    private String argument;
 
     /**
-     * Get the Redis component
-     *
-     * @return  net.jmp.demo.redis.Redis
-     */
-    Redis getRedis() {
-        return this.redis;
-    }
-
-    /**
-     * Set the Redis component.
-     *
-     * @param   redis   net.jmp.demo.redis.Redis
-     */
-    void setRedis(final Redis redis) {
-        this.redis = redis;
-    }
-
-    /**
-     * The to-string method.
+     * Get the command.
      *
      * @return  java.lang.String
      */
+    public String getCommand() {
+        return this.command;
+    }
+
+    /**
+     * Set the command.
+     *
+     * @param   command java.lang.String
+     */
+    public void setCommand(final String command) {
+        this.command = command;
+    }
+
+    /**
+     * Get the argument.
+     *
+     * @return  java.lang.String
+     */
+    public String getArgument() {
+        return this.argument;
+    }
+
+    /**
+     * Set the argument.
+     *
+     * @param   argument    java.lang.String
+     */
+    public void setArgument(final String argument) {
+        this.argument = argument;
+    }
+
     @Override
     public String toString() {
-        return "Config{" +
-                "redis=" + redis +
+        return "ServerCLI{" +
+                "command='" + command + '\'' +
+                ", argument='" + argument + '\'' +
                 '}';
     }
 }

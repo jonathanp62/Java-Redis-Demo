@@ -1,11 +1,11 @@
-package net.jmp.demo.redis;
+package net.jmp.demo.redis.config;
 
 /*
- * (#)Demo.java 0.3.0   05/03/2024
+ * (#)Config.java   0.1.0   05/01/2024
  *
- * @author   Jonathan Parker
- * @version  0.3.0
- * @since    0.3.0
+ * @author    Jonathan Parker
+ * @version   0.1.0
+ * @since     0.1.0
  *
  * MIT License
  *
@@ -30,31 +30,43 @@ package net.jmp.demo.redis;
  * SOFTWARE.
  */
 
-import org.redisson.api.RedissonClient;
+import com.google.gson.annotations.SerializedName;
 
-abstract class Demo implements Go {
-    /** The application configuration. */
-    protected final Config config;
-
-    /** The Redisson client. */
-    protected final RedissonClient client;
+/**
+ * The configuration class.
+ */
+public final class Config {
+    /** The Redis component. */
+    @SerializedName("redis")
+    private Redis redis;
 
     /**
-     * The constructor that takes
-     * the application configuration.
+     * Get the Redis component
      *
-     * @param   config  net.jmp.demo.redis.Config
-     * @param   client  org.redisson.api.RedissonClient
+     * @return  net.jmp.demo.redis.Redis
      */
-    Demo(final Config config, final RedissonClient client) {
-        super();
-
-        this.config = config;
-        this.client = client;
+    public Redis getRedis() {
+        return this.redis;
     }
 
-    @Override
-    public void go() {
+    /**
+     * Set the Redis component.
+     *
+     * @param   redis   net.jmp.demo.redis.Redis
+     */
+    public void setRedis(final Redis redis) {
+        this.redis = redis;
+    }
 
+    /**
+     * The to-string method.
+     *
+     * @return  java.lang.String
+     */
+    @Override
+    public String toString() {
+        return "Config{" +
+                "redis=" + redis +
+                '}';
     }
 }
