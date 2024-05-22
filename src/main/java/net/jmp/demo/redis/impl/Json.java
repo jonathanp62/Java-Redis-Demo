@@ -1,4 +1,4 @@
-package net.jmp.demo.redis;
+package net.jmp.demo.redis.impl;
 
 /*
  * (#)Json.java 0.5.0   05/18/2024
@@ -31,21 +31,27 @@ package net.jmp.demo.redis;
  */
 
 import com.fasterxml.jackson.core.type.TypeReference;
+
 import org.redisson.api.RJsonBucket;
 import org.redisson.api.RedissonClient;
 
 import org.redisson.client.RedisException;
+
 import org.redisson.codec.JacksonCodec;
-import org.redisson.codec.JsonCodec;
+
 import org.slf4j.LoggerFactory;
 
 import org.slf4j.ext.XLogger;
+
+import net.jmp.demo.redis.api.Demo;
+
+import net.jmp.demo.redis.config.*;
 
 /*
  * The class that demonstrates using Redis
  * to serialize objects as JSON.
  */
-final class Json extends Demo {
+public final class Json extends Demo {
     /** The logger. */
     private final XLogger logger = new XLogger(LoggerFactory.getLogger(this.getClass().getName()));
 
@@ -56,7 +62,7 @@ final class Json extends Demo {
      * @param   config  net.jmp.demo.redis.Config
      * @param   client  org.redisson.api.RedissonClient
      */
-    Json(final Config config, final RedissonClient client) {
+    public Json(final Config config, final RedissonClient client) {
         super(config, client);
     }
 
