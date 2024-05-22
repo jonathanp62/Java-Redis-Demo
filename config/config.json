@@ -4,7 +4,7 @@
     "port": 6379,
     "protocol": "redis://",
     "server-cli": {
-      "command": "/usr/local/bin/redis-server",
+      "command": "/usr/local/Caskroom/redis-stack-server/7.2.0-v10/bin/redis-server",
       "argument": "--version"
     }
   }
