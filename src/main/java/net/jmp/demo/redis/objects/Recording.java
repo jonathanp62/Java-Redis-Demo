@@ -34,11 +34,13 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
+import org.redisson.api.annotation.REntity;
 import org.redisson.api.annotation.RId;
 
 /**
  * The recording class.
  */
+@REntity
 public final class Recording {
     @RId
     private String id;
