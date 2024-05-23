@@ -30,14 +30,17 @@ package net.jmp.demo.redis.impl;
  * SOFTWARE.
  */
 
+import java.util.UUID;
+
 import org.redisson.api.RedissonClient;
+
 import org.slf4j.LoggerFactory;
 
 import org.slf4j.ext.XLogger;
 
 import net.jmp.demo.redis.api.Demo;
 
-import net.jmp.demo.redis.config.*;
+import net.jmp.demo.redis.config.Config;
 
 /*
  * The class that demonstrates live objects.
@@ -63,6 +66,44 @@ public class LiveObjects extends Demo  {
     @Override
     public void go() {
         this.logger.entry();
+
+        this.persist();
+        this.attach();
+        this.merge();
+
+        this.logger.exit();
+    }
+
+    /**
+     * Persist a live object.
+     */
+    private void persist() {
+        this.logger.entry();
+
+        final String id = UUID.randomUUID().toString();
+
+        this.logger.exit();
+    }
+
+    /**
+     * Attach a live object.
+     */
+    private void attach() {
+        this.logger.entry();
+
+        final String id = UUID.randomUUID().toString();
+
+        this.logger.exit();
+    }
+
+    /**
+     * Merge a live object.
+     */
+    private void merge() {
+        this.logger.entry();
+
+        final String id = UUID.randomUUID().toString();
+
         this.logger.exit();
     }
 }
