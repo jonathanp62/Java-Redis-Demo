@@ -82,9 +82,9 @@ public class LiveObjects extends Demo  {
 
         this.persist();
 
-        final String id = this.attach();
+        final Recording detachedRecording = this.attach();
 
-        this.merge(id);
+        this.merge(detachedRecording);
 
         this.logger.exit();
     }
@@ -100,21 +100,21 @@ public class LiveObjects extends Demo  {
         final RLiveObjectService service = this.client.getLiveObjectService();
         final String id = UUID.randomUUID().toString();
 
-        final Recording sourceRecording = new Recording();  // This is a detached object
+        final Recording detachedRecording = new Recording();  // This is a detached object
 
         service.registerClass(Recording.class);
 
-        sourceRecording.setId(id);
-        sourceRecording.setLabel("Deutsche Grammophon");
-        sourceRecording.setTitle("Rachmaninoff: The Piano Concertos and Paganini Rhapsody");
-        sourceRecording.setArtists(
+        detachedRecording.setId(id);
+        detachedRecording.setLabel("Deutsche Grammophon");
+        detachedRecording.setTitle("Rachmaninoff: The Piano Concertos and Paganini Rhapsody");
+        detachedRecording.setArtists(
                 List.of(
                         "Yuja Wang",
                         "Gustavo Dudamel",
                         "Los Angeles Philharmonic Orchestra"
                 )
         );
-        sourceRecording.setTimeInMinutes(148);
+        detachedRecording.setTimeInMinutes(148);
 
         Date whenRecorded = null;
 
@@ -125,13 +125,13 @@ public class LiveObjects extends Demo  {
         }
 
         if (whenRecorded != null) {
-            sourceRecording.setWhenRecorded(whenRecorded);
+            detachedRecording.setWhenRecorded(whenRecorded);
 
-            this.logger.info("Source recording: {}", sourceRecording);
+            this.logger.info("Detached recording: {}", detachedRecording);
 
             // Logging the to-string methods of the proxied objects always show all fields as null
 
-            final Recording attachedProxyRecording = service.persist(sourceRecording);
+            final Recording attachedProxyRecording = service.persist(detachedRecording);
 
             if (this.logger.isInfoEnabled()) {
                 this.logger.info("Attached proxy title: {}", attachedProxyRecording.getTitle());
@@ -148,6 +148,10 @@ public class LiveObjects extends Demo  {
             }
         }
 
+        final long deletes = service.delete(Recording.class, id);
+
+        this.logger.info("{} live object(s) were deleted", deletes);
+
         service.unregisterClass(Recording.class);
 
         this.logger.exit();
@@ -155,31 +159,63 @@ public class LiveObjects extends Demo  {
 
     /**
      * Attach a live object.
-     * Return its identifier.
+     * Return the detached object.
      *
-     * @return  java.lang.String
+     * @return  net.jmp.demo.redis.objects.Recording
      */
-    private String attach() {
+    private Recording attach() {
         this.logger.entry();
 
         final RLiveObjectService service = this.client.getLiveObjectService();
         final String id = UUID.randomUUID().toString();
 
-        final Recording sourceRecording = new Recording();  // This is a detached object
+        final Recording detachedRecording = new Recording();  // This is a detached object
 
         service.registerClass(Recording.class);
 
-        sourceRecording.setId(id);
-        sourceRecording.setLabel("Deutsche Grammophon");
-        sourceRecording.setTitle("Beethoven and Beyond");
-        sourceRecording.setArtists(
+        detachedRecording.setId(id);
+        detachedRecording.setLabel("Deutsche Grammophon");
+        detachedRecording.setTitle("Beethoven and Beyond");
+        detachedRecording.setArtists(
                 List.of(
                         "Maria Duenas",
                         "Manfred Hancock",
                         "Vienna Symphony Orchestra"
                 )
         );
-        //sourceRecording.setTimeInMinutes(100);
+
+        final Recording attachedProxyRecording = service.attach(detachedRecording);
+
+        // The attachedProxyRecording instance has a length of zero bytes
+        // Each field will be null
+
+        if (this.logger.isInfoEnabled()) {
+            this.logger.info("Attached proxy title: {}", attachedProxyRecording.getTitle());
+            this.logger.info("Attached proxy label: {}", attachedProxyRecording.getLabel());
+            this.logger.info("Attached proxy time : {}", attachedProxyRecording.getTimeInMinutes());
+        }
+
+        service.unregisterClass(Recording.class);
+
+        this.logger.exit(detachedRecording);
+
+        return detachedRecording;
+    }
+
+    /**
+     * Merge a live object. The input is the detached
+     * object from the previous attach operation.
+     *
+     * @param   detachedRecording   net.jmp.demo.redis.objects.Recording
+     */
+    private void merge(final Recording detachedRecording) {
+        this.logger.entry(detachedRecording);
+
+        final RLiveObjectService service = this.client.getLiveObjectService();
+
+        service.registerClass(Recording.class);
+
+        detachedRecording.setTimeInMinutes(100);
 
         Date whenRecorded = null;
 
@@ -190,24 +226,24 @@ public class LiveObjects extends Demo  {
         }
 
         if (whenRecorded != null) {
-
+            detachedRecording.setWhenRecorded(whenRecorded);
         }
+
+        final Recording attachedProxyRecording = service.merge(detachedRecording);
+
+        if (this.logger.isInfoEnabled()) {
+            this.logger.info("Attached proxy title: {}", attachedProxyRecording.getTitle());
+            this.logger.info("Attached proxy label: {}", attachedProxyRecording.getLabel());
+            this.logger.info("Attached proxy time : {}", attachedProxyRecording.getTimeInMinutes());
+            this.logger.info("Attached proxy date : {}", attachedProxyRecording.getWhenRecorded());
+        }
+
+        final long deletes = service.delete(Recording.class, attachedProxyRecording.getId());
+
+        this.logger.info("{} live object(s) were deleted", deletes);
 
         service.unregisterClass(Recording.class);
 
-        this.logger.exit(id);
-
-        return id;
-    }
-
-    /**
-     * Merge a live object.
-     *
-     * @param   id  java.lang.String
-     */
-    private void merge(final String id) {
-        this.logger.entry(id);
-        
         this.logger.exit();
     }
 
