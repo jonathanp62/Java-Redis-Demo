@@ -59,6 +59,9 @@ public class LiveObjects extends Demo  {
     /** The logger. */
     private final XLogger logger = new XLogger(LoggerFactory.getLogger(this.getClass().getName()));
 
+    /** The date formatter */
+    private final SimpleDateFormat dateFormatter = new SimpleDateFormat("dd-MMM-yyyy", Locale.ENGLISH);
+
     /**
      * The constructor that takes
      * the application configuration.
@@ -78,8 +81,10 @@ public class LiveObjects extends Demo  {
         this.logger.entry();
 
         this.persist();
-        this.attach();
-        this.merge();
+
+        final String id = this.attach();
+
+        this.merge(id);
 
         this.logger.exit();
     }
@@ -111,12 +116,10 @@ public class LiveObjects extends Demo  {
         );
         sourceRecording.setTimeInMinutes(148);
 
-        final SimpleDateFormat formatter = new SimpleDateFormat("dd-MMM-yyyy", Locale.ENGLISH);
-
         Date whenRecorded = null;
 
         try {
-            whenRecorded = formatter.parse("1-Jan-2023");
+            whenRecorded = this.dateFormatter.parse("1-Jan-2023");
         } catch (final ParseException pe) {
             this.logger.catching(pe);
         }
@@ -152,22 +155,67 @@ public class LiveObjects extends Demo  {
 
     /**
      * Attach a live object.
+     * Return its identifier.
+     *
+     * @return  java.lang.String
      */
-    private void attach() {
+    private String attach() {
         this.logger.entry();
 
+        final RLiveObjectService service = this.client.getLiveObjectService();
         final String id = UUID.randomUUID().toString();
 
-        this.logger.exit();
+        final Recording sourceRecording = new Recording();  // This is a detached object
+
+        service.registerClass(Recording.class);
+
+        sourceRecording.setId(id);
+        sourceRecording.setLabel("Deutsche Grammophon");
+        sourceRecording.setTitle("Beethoven and Beyond");
+        sourceRecording.setArtists(
+                List.of(
+                        "Maria Duenas",
+                        "Manfred Hancock",
+                        "Vienna Symphony Orchestra"
+                )
+        );
+        //sourceRecording.setTimeInMinutes(100);
+
+        Date whenRecorded = null;
+
+        try {
+            whenRecorded = this.dateFormatter.parse("1-Jan-2023");
+        } catch (final ParseException pe) {
+            this.logger.catching(pe);
+        }
+
+        if (whenRecorded != null) {
+
+        }
+
+        service.unregisterClass(Recording.class);
+
+        this.logger.exit(id);
+
+        return id;
     }
 
     /**
      * Merge a live object.
+     *
+     * @param   id  java.lang.String
      */
-    private void merge() {
-        this.logger.entry();
+    private void merge(final String id) {
+        this.logger.entry(id);
+        
+        this.logger.exit();
+    }
 
-        final String id = UUID.randomUUID().toString();
+    /**
+     * Search for live objects.
+     */
+    private void search() {
+        this.logger.entry();
 
         this.logger.exit();
     }
