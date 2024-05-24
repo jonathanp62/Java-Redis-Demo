@@ -1,13 +1,14 @@
 package net.jmp.demo.redis.impl;
 
 /*
+ * (#)Caching.java  0.7.0   05/24/2024
  * (#)Caching.java  0.5.0   05/18/2024
  * (#)Caching.java  0.3.0   05/03/2024
  * (#)Caching.java  0.2.0   05/02/2024
  * (#)Caching.java  0.1.0   05/01/2024
  *
  * @author   Jonathan Parker
- * @version  0.5.0
+ * @version  0.7.0
  * @since    0.1.0
  *
  * MIT License
@@ -96,12 +97,16 @@ public final class Caching extends Demo {
                 RBucket<?> bucket;
 
                 try {
-                    if (!key.equals("my-config"))
-                        bucket = this.client.getBucket(key, StringCodec.INSTANCE);
-                    else
-                        bucket = this.client.getJsonBucket(key, new JacksonCodec<>(Config.class));
+                    if (!key.startsWith("redisson_live_object")) {
+                        if (!key.equals("my-config"))
+                            bucket = this.client.getBucket(key, StringCodec.INSTANCE);
+                        else
+                            bucket = this.client.getJsonBucket(key, new JacksonCodec<>(Config.class));
 
-                    this.logger.info("Value of key '{}': {}", key, bucket.get());
+                        this.logger.info("Value of key '{}': {}", key, bucket.get());
+                    } else {
+                        this.logger.info("Ignoring key '{}'", key);
+                    }
                 } catch (final KryoException ke) {
                     this.logger.catching(ke);
                 }

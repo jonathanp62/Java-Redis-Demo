@@ -1,10 +1,11 @@
 package net.jmp.demo.redis.impl;
 
 /*
+ * (#)LiveObjects.java 0.7.0   05/24/2024
  * (#)LiveObjects.java 0.6.0   05/23/2024
  *
  * @author   Jonathan Parker
- * @version  0.6.0
+ * @version  0.7.0
  * @since    0.6.0
  *
  * MIT License
@@ -30,9 +31,16 @@ package net.jmp.demo.redis.impl;
  * SOFTWARE.
  */
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 
 import org.redisson.api.RedissonClient;
+import org.redisson.api.RLiveObjectService;
 
 import org.slf4j.LoggerFactory;
 
@@ -41,6 +49,8 @@ import org.slf4j.ext.XLogger;
 import net.jmp.demo.redis.api.Demo;
 
 import net.jmp.demo.redis.config.Config;
+
+import net.jmp.demo.redis.objects.Recording;
 
 /*
  * The class that demonstrates live objects.
@@ -75,12 +85,67 @@ public class LiveObjects extends Demo  {
     }
 
     /**
-     * Persist a live object.
+     * Persist a live object. Persist returns proxied attached object
+     * for the detached object. Transfers all the non-null field values
+     * to the redis server. Only when the object does not already exist.
      */
     private void persist() {
         this.logger.entry();
 
+        final RLiveObjectService service = this.client.getLiveObjectService();
         final String id = UUID.randomUUID().toString();
+
+        final Recording sourceRecording = new Recording();  // This is a detached object
+
+        service.registerClass(Recording.class);
+
+        sourceRecording.setId(id);
+        sourceRecording.setLabel("Deutsche Grammophon");
+        sourceRecording.setTitle("Rachmaninoff: The Piano Concertos and Paganini Rhapsody");
+        sourceRecording.setArtists(
+                List.of(
+                        "Yuja Wang",
+                        "Gustavo Dudamel",
+                        "Los Angeles Philharmonic Orchestra"
+                )
+        );
+        sourceRecording.setTimeInMinutes(148);
+
+        final SimpleDateFormat formatter = new SimpleDateFormat("dd-MMM-yyyy", Locale.ENGLISH);
+
+        Date whenRecorded = null;
+
+        try {
+            whenRecorded = formatter.parse("1-Jan-2023");
+        } catch (final ParseException pe) {
+            this.logger.catching(pe);
+        }
+
+        if (whenRecorded != null) {
+            sourceRecording.setWhenRecorded(whenRecorded);
+
+            this.logger.info("Source recording: {}", sourceRecording);
+
+            // Logging the to-string methods of the proxied objects always show all fields as null
+
+            final Recording attachedProxyRecording = service.persist(sourceRecording);
+
+            if (this.logger.isInfoEnabled()) {
+                this.logger.info("Attached proxy title: {}", attachedProxyRecording.getTitle());
+                this.logger.info("Attached proxy label: {}", attachedProxyRecording.getLabel());
+                this.logger.info("Attached proxy time : {}", attachedProxyRecording.getTimeInMinutes());
+            }
+
+            final Recording proxiedRecording = service.get(Recording.class, id);
+
+            if (this.logger.isInfoEnabled()) {
+                this.logger.info("Proxied title: {}", proxiedRecording.getTitle());
+                this.logger.info("Proxied label: {}", attachedProxyRecording.getLabel());
+                this.logger.info("Proxied time : {}", attachedProxyRecording.getTimeInMinutes());
+            }
+        }
+
+        service.unregisterClass(Recording.class);
 
         this.logger.exit();
     }

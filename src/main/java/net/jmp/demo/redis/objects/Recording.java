@@ -1,10 +1,11 @@
 package net.jmp.demo.redis.objects;
 
 /*
+ * (#)Recording.java    0.7.0   05/24/2024
  * (#)Recording.java    0.6.0   05/23/2024
  *
  * @author    Jonathan Parker
- * @version   0.6.0
+ * @version   0.7.0
  * @since     0.6.0
  *
  * MIT License
@@ -38,17 +39,19 @@ import org.redisson.api.annotation.REntity;
 import org.redisson.api.annotation.RId;
 
 /**
- * The recording class.
+ * The recording class. Live objects
+ * cannot be final nor can they
+ * contain primitives.
  */
 @REntity
-public final class Recording {
+public class Recording {
     @RId
     private String id;
 
     private String title;
     private String label;
     private List<String> artists;
-    private int timeInMinutes;
+    private Integer timeInMinutes;
     private Date whenRecorded;
 
     public Recording() {
@@ -93,11 +96,11 @@ public final class Recording {
         this.artists = artists;
     }
 
-    public int getTimeInMinutes() {
+    public Integer getTimeInMinutes() {
         return this.timeInMinutes;
     }
 
-    public void setTimeInMinutes(final int timeInMinutes) {
+    public void setTimeInMinutes(final Integer timeInMinutes) {
         this.timeInMinutes = timeInMinutes;
     }
 
@@ -117,7 +120,7 @@ public final class Recording {
 
         final Recording recording = (Recording) o;
 
-        return this.timeInMinutes == recording.timeInMinutes && Objects.equals(this.id, recording.id) && Objects.equals(this.title, recording.title) && Objects.equals(this.label, recording.label) && Objects.equals(this.artists, recording.artists) && Objects.equals(this.whenRecorded, recording.whenRecorded);
+        return Objects.equals(this.timeInMinutes, recording.timeInMinutes) && Objects.equals(this.id, recording.id) && Objects.equals(this.title, recording.title) && Objects.equals(this.label, recording.label) && Objects.equals(this.artists, recording.artists) && Objects.equals(this.whenRecorded, recording.whenRecorded);
     }
 
     @Override
@@ -128,7 +131,7 @@ public final class Recording {
         result = 31 * result + Objects.hashCode(this.label);
         result = 31 * result + Objects.hashCode(this.artists);
         result = 31 * result + Objects.hashCode(this.whenRecorded);
-        result = 31 * result + this.timeInMinutes;
+        result = 31 * result + Objects.hashCode(this.timeInMinutes);
 
         return result;
     }
@@ -137,7 +140,7 @@ public final class Recording {
     public String toString() {
         return "Recording{" +
                 "id='" + this.id + '\'' +
-                "title='" + this.title + '\'' +
+                ", title='" + this.title + '\'' +
                 ", label='" + this.label + '\'' +
                 ", artists=" + this.artists +
                 ", timeInMinutes=" + this.timeInMinutes +
