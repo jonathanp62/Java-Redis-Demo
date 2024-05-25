@@ -34,14 +34,12 @@ package net.jmp.demo.redis.impl;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
-import java.util.UUID;
+import java.util.*;
 
 import org.redisson.api.RedissonClient;
 import org.redisson.api.RLiveObjectService;
 
+import org.redisson.api.condition.Conditions;
 import org.slf4j.LoggerFactory;
 
 import org.slf4j.ext.XLogger;
@@ -91,7 +89,7 @@ public class LiveObjects extends Demo  {
         final Recording recording2 = this.attach();
 
         this.merge(recording2);
-
+        this.search();
         this.delete(recording1, recording2);
 
         this.service.unregisterClass(Recording.class);
@@ -243,10 +241,19 @@ public class LiveObjects extends Demo  {
     }
 
     /**
-     * Search for live objects.
+     * Search for live objects. Any field that
+     * is searchable must be annotated with
+     * RIndex.
      */
     private void search() {
         this.logger.entry();
+
+        final Collection<Recording> recordings = this.service.find(
+                Recording.class,
+                Conditions.eq("label", "Deutsche Grammophon")
+        );
+
+        recordings.forEach(recording -> this.logger.info("Found title: {}", recording.getTitle()));
 
         this.logger.exit();
     }

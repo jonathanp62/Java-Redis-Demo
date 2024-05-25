@@ -37,6 +37,7 @@ import java.util.Objects;
 
 import org.redisson.api.annotation.REntity;
 import org.redisson.api.annotation.RId;
+import org.redisson.api.annotation.RIndex;
 
 /**
  * The recording class. Live objects
@@ -49,7 +50,10 @@ public class Recording {
     private String id;
 
     private String title;
+
+    @RIndex
     private String label;
+
     private List<String> artists;
     private Integer timeInMinutes;
     private Date whenRecorded;
