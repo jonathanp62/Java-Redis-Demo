@@ -83,7 +83,7 @@ dependencies {
 group = 'net.jmp.demo.redis'
 version = '0.7.0'
 description = 'The Redis Demonstration'
-java.sourceCompatibility = JavaVersion.VERSION_21
+java.sourceCompatibility = JavaVersion.VERSION_22
 
 java {
     withSourcesJar()
