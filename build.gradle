@@ -88,7 +88,7 @@ java.sourceCompatibility = JavaVersion.VERSION_22
 java {
     withSourcesJar()
     toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
+        languageVersion = JavaLanguageVersion.of(22)
     }
 }
 
@@ -102,7 +102,7 @@ publishing {
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
-    options.release.set(21)
+    options.release.set(22)
 }
 
 tasks.withType(Javadoc).configureEach {
