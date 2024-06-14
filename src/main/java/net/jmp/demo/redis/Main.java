@@ -58,6 +58,7 @@ import org.slf4j.ext.XLogger;
 
 import net.jmp.demo.redis.api.Demo;
 
+import net.jmp.demo.redis.config.Architecture;
 import net.jmp.demo.redis.config.Config;
 
 import net.jmp.demo.redis.impl.*;
@@ -179,81 +180,79 @@ public final class Main {
 
         assert config != null;
 
-        final var serverCliCommandKey = this.getServerCliCommandKey();
+        final var architecture = this.getArchitecture();
 
-        if (serverCliCommandKey.isPresent()) {
-            String command;
+        String command;
 
-            if (serverCliCommandKey.get().equals("command-intel"))
-                command = config.getRedis().getServerCLI().getCommandIntel();
-            else if (serverCliCommandKey.get().equals("command-silicon"))
-                command = config.getRedis().getServerCLI().getCommandSilicon();
-            else
-                throw new IllegalStateException("Unsupported server CLI command: " + serverCliCommandKey);
+        if (architecture == Architecture.INTEL)
+            command = config.getRedis().getServerCLI().getCommandIntel();
+        else if (architecture == Architecture.APPLE_SILICON)
+            command = config.getRedis().getServerCLI().getCommandSilicon();
+        else
+            throw new IllegalStateException("Unsupported architecture: " + architecture);
 
-            final StringBuilder sb = new StringBuilder();
-            final Process process = new ProcessBuilder(
-                    command,
-                    config.getRedis().getServerCLI().getArgument()
-                )
-                .redirectErrorStream(true)
-                .start();
+        final StringBuilder sb = new StringBuilder();
+        final Process process = new ProcessBuilder(
+                command,
+                config.getRedis().getServerCLI().getArgument()
+            )
+            .redirectErrorStream(true)
+            .start();
 
-            try (final var processOutputReader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-                String line;
+        try (final var processOutputReader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+            String line;
 
-                while ((line = processOutputReader.readLine()) != null) {
-                    sb.append(line);
-                }
+            while ((line = processOutputReader.readLine()) != null) {
+                sb.append(line);
+            }
 
-                process.waitFor();
+            process.waitFor();
 
-                if (process.exitValue() == 0) {
-                    final var matcher = this.versionPattern.matcher(sb.toString());
+            if (process.exitValue() == 0) {
+                final var matcher = this.versionPattern.matcher(sb.toString());
 
-                    if (matcher.find()) {
-                        final var version = matcher.group("version");
+                if (matcher.find()) {
+                    final var version = matcher.group("version");
 
-                        if (version != null)
-                            this.logger.info("Redis server {}", version);
-                        else {
-                            if (this.logger.isWarnEnabled())
-                                this.logger.warn("Group 'version' not found in {}", sb.toString());
-                        }
-                    } else {
+                    if (version != null)
+                        this.logger.info("Redis server {}", version);
+                    else {
                         if (this.logger.isWarnEnabled())
-                            this.logger.warn("No match on {}", sb.toString());
+                            this.logger.warn("Group 'version' not found in {}", sb.toString());
                     }
                 } else {
                     if (this.logger.isWarnEnabled())
-                        this.logger.warn(
-                                "Process failed: {}",
-                                process.info().commandLine().orElse(
-                                        command +
-                                                ' ' +
-                                                config.getRedis().getServerCLI().getArgument()
-                                )
-                        );
+                        this.logger.warn("No match on {}", sb.toString());
                 }
-            } catch (final InterruptedException ie) {
-                this.logger.catching(ie);
-                Thread.currentThread().interrupt();     // Restore the interrupt status
+            } else {
+                if (this.logger.isWarnEnabled())
+                    this.logger.warn(
+                            "Process failed: {}",
+                            process.info().commandLine().orElse(
+                                    command +
+                                            ' ' +
+                                            config.getRedis().getServerCLI().getArgument()
+                            )
+                    );
             }
+        } catch (final InterruptedException ie) {
+            this.logger.catching(ie);
+            Thread.currentThread().interrupt();     // Restore the interrupt status
         }
 
         this.logger.exit();
     }
 
     /**
-     * Return the correct server CLI command key for the architecture.
+     * Return the architecture.
      *
-     * @return  java.util.Optional&lt;java.lang.String&gt;
+     * @return  net.jmp.demo.redis.config.Architecture
      * @throws  java.io.IOException
      */
-    private Optional<String> getServerCliCommandKey() throws IOException {
+    private Architecture getArchitecture() throws IOException {
         this.logger.entry();
 
-        String result = null;
+        Architecture result = Architecture.INTEL;
 
         final StringBuilder sb = new StringBuilder();
         final Process process = new ProcessBuilder(
@@ -274,12 +273,8 @@ public final class Main {
             process.waitFor();
 
             if (process.exitValue() == 0) {
-                switch (sb.toString()) {
-                    case "Apple M2 Max":
-                        result = "command-silicon";
-                        break;
-                    default:
-                        result = "command-intel";
+                if (sb.toString().equals("Apple M2 Max")) {
+                    result = Architecture.APPLE_SILICON;
                 }
             } else {
                 if (this.logger.isWarnEnabled()) {
@@ -293,7 +288,7 @@ public final class Main {
 
         this.logger.exit(result);
 
-        return Optional.ofNullable(result);
+        return result;
     }
 
     /**

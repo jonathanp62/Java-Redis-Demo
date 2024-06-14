@@ -1,10 +1,11 @@
 package net.jmp.demo.redis.impl;
 
 /*
+ * (#)Collections.java  0.8.0   06/14/2024
  * (#)Collections.java  0.3.0   05/03/2024
  *
  * @author   Jonathan Parker
- * @version  0.3.0
+ * @version  0.8.0
  * @since    0.3.0
  *
  * MIT License
@@ -128,6 +129,9 @@ public final class Collections extends Demo {
      */
     private void logMap(final Map<String, String> map) {
         this.logger.entry(map);
+
+        assert map != null;
+        assert !map.isEmpty();
 
         for (final var entry : map.entrySet()) {
             if (this.logger.isInfoEnabled()) {

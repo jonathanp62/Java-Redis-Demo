@@ -1,11 +1,12 @@
 package net.jmp.demo.redis.impl;
 
 /*
+ * (#)LiveObjects.java 0.8.0   06/14/2024
  * (#)LiveObjects.java 0.7.0   05/24/2024
  * (#)LiveObjects.java 0.6.0   05/23/2024
  *
  * @author   Jonathan Parker
- * @version  0.7.0
+ * @version  0.8.0
  * @since    0.6.0
  *
  * MIT License
@@ -212,6 +213,8 @@ public class LiveObjects extends Demo  {
     private Recording merge(final Recording detachedRecording) {
         this.logger.entry(detachedRecording);
 
+        assert detachedRecording != null;
+
         detachedRecording.setTimeInMinutes(100);
 
         Date whenRecorded = null;
@@ -265,6 +268,8 @@ public class LiveObjects extends Demo  {
      */
     private void delete(final Recording... recordings) {
         this.logger.entry((Object) recordings);
+
+        assert recordings != null;
 
         for (final var recording : recordings) {
             final long deletes = service.delete(Recording.class, recording.getId());
