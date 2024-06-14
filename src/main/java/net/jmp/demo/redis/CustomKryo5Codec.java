@@ -1,10 +1,11 @@
 package net.jmp.demo.redis;
 
 /*
+ * (#)CustomKryo5Codec.java 0.8.0   06/14/2024
  * (#)CustomKryo5Codec.java 0.3.0   05/11/2024
  *
  * @author   Jonathan Parker
- * @version  0.3.0
+ * @version  0.8.0
  * @since    0.3.0
  *
  * MIT License
@@ -47,6 +48,8 @@ final class CustomKryo5Codec extends Kryo5Codec {
      */
     @Override
     protected Kryo createKryo(final ClassLoader classLoader) {
+        // Do not assert that classLoader cannot be null
+
         final Kryo kryo = super.createKryo(classLoader);
 
         kryo.setReferences(true);

@@ -1,6 +1,7 @@
 package net.jmp.demo.redis;
 
 /*
+ * (#)Main.java 0.8.0   06/14/2024
  * (#)Main.java 0.6.0   05/23/2024
  * (#)Main.java 0.5.0   05/18/2024
  * (#)Main.java 0.4.0   05/17/2024
@@ -9,7 +10,7 @@ package net.jmp.demo.redis;
  * (#)Main.java 0.1.0   05/01/2024
  *
  * @author   Jonathan Parker
- * @version  0.6.0
+ * @version  0.8.0
  * @since    0.1.0
  *
  * MIT License
@@ -152,6 +153,8 @@ public final class Main {
     private RedissonClient getClient(final Config config) {
         this.logger.entry(config);
 
+        assert config != null;
+
         final var connector = new Connector(
                 config.getRedis().getHostName(),
                 config.getRedis().getPort(),
@@ -169,17 +172,97 @@ public final class Main {
      * Log the server version.
      *
      * @param   config  net.jmp.demo.redis.Config
+     * @throws          java.io.IOException
      */
     private void logServerVersion(final Config config) throws IOException {
         this.logger.entry(config);
 
-        final StringBuilder sb = new StringBuilder();
-        final Process process = new ProcessBuilder(
-                config.getRedis().getServerCLI().getCommand(),
-                        config.getRedis().getServerCLI().getArgument()
+        assert config != null;
+
+        final var serverCliCommandKey = this.getServerCliCommandKey();
+
+        if (serverCliCommandKey.isPresent()) {
+            String command;
+
+            if (serverCliCommandKey.get().equals("command-intel"))
+                command = config.getRedis().getServerCLI().getCommandIntel();
+            else if (serverCliCommandKey.get().equals("command-silicon"))
+                command = config.getRedis().getServerCLI().getCommandSilicon();
+            else
+                throw new IllegalStateException("Unsupported server CLI command: " + serverCliCommandKey);
+
+            final StringBuilder sb = new StringBuilder();
+            final Process process = new ProcessBuilder(
+                    command,
+                    config.getRedis().getServerCLI().getArgument()
                 )
                 .redirectErrorStream(true)
                 .start();
+
+            try (final var processOutputReader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+                String line;
+
+                while ((line = processOutputReader.readLine()) != null) {
+                    sb.append(line);
+                }
+
+                process.waitFor();
+
+                if (process.exitValue() == 0) {
+                    final var matcher = this.versionPattern.matcher(sb.toString());
+
+                    if (matcher.find()) {
+                        final var version = matcher.group("version");
+
+                        if (version != null)
+                            this.logger.info("Redis server {}", version);
+                        else {
+                            if (this.logger.isWarnEnabled())
+                                this.logger.warn("Group 'version' not found in {}", sb.toString());
+                        }
+                    } else {
+                        if (this.logger.isWarnEnabled())
+                            this.logger.warn("No match on {}", sb.toString());
+                    }
+                } else {
+                    if (this.logger.isWarnEnabled())
+                        this.logger.warn(
+                                "Process failed: {}",
+                                process.info().commandLine().orElse(
+                                        command +
+                                                ' ' +
+                                                config.getRedis().getServerCLI().getArgument()
+                                )
+                        );
+                }
+            } catch (final InterruptedException ie) {
+                this.logger.catching(ie);
+                Thread.currentThread().interrupt();     // Restore the interrupt status
+            }
+        }
+
+        this.logger.exit();
+    }
+
+    /**
+     * Return the correct server CLI command key for the architecture.
+     *
+     * @return  java.util.Optional&lt;java.lang.String&gt;
+     * @throws  java.io.IOException
+     */
+    private Optional<String> getServerCliCommandKey() throws IOException {
+        this.logger.entry();
+
+        String result = null;
+
+        final StringBuilder sb = new StringBuilder();
+        final Process process = new ProcessBuilder(
+                "/usr/sbin/sysctl",
+                "-n",
+                "machdep.cpu.brand_string"
+            )
+            .redirectErrorStream(true)
+            .start();
 
         try (final var processOutputReader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
             String line;
@@ -191,38 +274,26 @@ public final class Main {
             process.waitFor();
 
             if (process.exitValue() == 0) {
-                final var matcher = this.versionPattern.matcher(sb.toString());
-
-                if (matcher.find()) {
-                    final var version = matcher.group("version");
-
-                    if (version != null)
-                        this.logger.info("Redis server {}", version);
-                    else {
-                        if (this.logger.isWarnEnabled())
-                            this.logger.warn("Group 'version' not found in {}", sb.toString());
-                    }
-                } else {
-                    if (this.logger.isWarnEnabled())
-                        this.logger.warn("No match on {}", sb.toString());
+                switch (sb.toString()) {
+                    case "Apple M2 Max":
+                        result = "command-silicon";
+                        break;
+                    default:
+                        result = "command-intel";
                 }
             } else {
-                if (this.logger.isWarnEnabled())
-                    this.logger.warn(
-                            "Process failed: {}",
-                            process.info().commandLine().orElse(
-                                    config.getRedis().getServerCLI().getCommand() +
-                                            ' ' +
-                                        config.getRedis().getServerCLI().getArgument()
-                            )
-                    );
+                if (this.logger.isWarnEnabled()) {
+                    this.logger.warn("Process failed: {}", process.info().commandLine().orElse("/usr/sbin/sysctl -n machdep.cpu.brand_string"));
+                }
             }
         } catch (final InterruptedException ie) {
             this.logger.catching(ie);
             Thread.currentThread().interrupt();     // Restore the interrupt status
         }
 
-        this.logger.exit();
+        this.logger.exit(result);
+
+        return Optional.ofNullable(result);
     }
 
     /**

@@ -1,10 +1,11 @@
 package net.jmp.demo.redis.api;
 
 /*
+ * (#)Demo.java 0.8.0   06/14/2024
  * (#)Demo.java 0.3.0   05/03/2024
  *
  * @author   Jonathan Parker
- * @version  0.3.0
+ * @version  0.8.0
  * @since    0.3.0
  *
  * MIT License
@@ -50,6 +51,9 @@ public abstract class Demo implements Go {
      */
     protected Demo(final Config config, final RedissonClient client) {
         super();
+
+        assert config != null;
+        assert client != null;
 
         this.config = config;
         this.client = client;
