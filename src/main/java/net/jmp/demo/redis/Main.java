@@ -95,7 +95,7 @@ public final class Main {
         this.getAppConfig().ifPresentOrElse(appConfig -> {
             RedissonClient client = null;
 
-            if (ProcessUtility.isRedisServerRunning()) {
+            if (ProcessUtility.isRedisServerRunning(appConfig.getProcessUtility().getRedisServer())) {
                 try {
                     client = this.getClient(appConfig);
 
@@ -122,7 +122,7 @@ public final class Main {
                     }
                 }
             } else {
-                this.logger.error("The 'redis-server' is not running");
+                this.logger.error("The '{}' is not running", appConfig.getProcessUtility().getRedisServer());
             }
         }, () -> this.logger.error("No configuration found for Redis-Demo"));
 

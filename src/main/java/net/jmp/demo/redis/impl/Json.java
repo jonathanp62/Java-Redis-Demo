@@ -76,7 +76,7 @@ public final class Json extends Demo {
     public void go() {
         this.logger.entry();
 
-        if (ProcessUtility.isRedisStackServerRunning()) {   // JSON handling requires the Redis stack server
+        if (ProcessUtility.isRedisServerRunning(this.config.getProcessUtility().getRedisStackServer())) {   // JSON handling requires the Redis stack server
             final RJsonBucket<Config> bucket = this.client.getJsonBucket("my-config", new JacksonCodec<>(Config.class));
             final String path = ".";
 
@@ -122,7 +122,7 @@ public final class Json extends Demo {
                 this.logger.catching(re);
             }
         } else {
-            this.logger.warn("The 'redis-stack-server' is not running");
+            this.logger.warn("The '{}' is not running", this.config.getProcessUtility().getRedisStackServer());
         }
 
         this.logger.exit();

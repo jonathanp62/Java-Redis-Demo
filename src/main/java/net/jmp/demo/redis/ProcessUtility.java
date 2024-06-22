@@ -52,14 +52,15 @@ public final class ProcessUtility {
     }
 
     /**
-     * Return true if the Redis server is running.
+     * Return true if the Redis server identified by the pattern is running.
      *
-     * @return  boolean
+     * @param   pattern java.lang.String
+     * @return          boolean
      */
-    public static boolean isRedisServerRunning() {
-        logger.entry();
+    public static boolean isRedisServerRunning(final String pattern) {
+        logger.entry(pattern);
 
-        final boolean result = isProcessRunning("redis-server");
+        final boolean result = isProcessRunning(pattern);
 
         logger.exit(result);
 
@@ -67,27 +68,13 @@ public final class ProcessUtility {
     }
 
     /**
-     * Return true if the Redis stack server is running.
+     * Return true if the process identified by the pattern is running.
      *
-     * @return  boolean
+     * @param   pattern java.lang.String
+     * @return          boolean
      */
-    public static boolean isRedisStackServerRunning() {
-        logger.entry();
-
-        final boolean result = isProcessRunning("redis-stack-server");
-
-        logger.exit(result);
-
-        return result;
-    }
-
-    /**
-     * Return true if the Redis server is running.
-     *
-     * @return  boolean
-     */
-    private static boolean isProcessRunning(final String processString) {
-        logger.entry(processString);
+    private static boolean isProcessRunning(final String pattern) {
+        logger.entry(pattern);
 
         boolean result = false;
 
@@ -96,7 +83,7 @@ public final class ProcessUtility {
         final List<String> arguments = List.of(
                 "/bin/sh",
                 "-c",
-                "ps -ef|grep " + processString + "|grep -v grep"
+                "ps -ef|grep " + pattern + "|grep -v grep"
         );
 
         final ProcessBuilder processBuilder = new ProcessBuilder(arguments);
@@ -109,11 +96,11 @@ public final class ProcessUtility {
 
             if (exitValue == 0 && !output.isEmpty()) {
                 if (logger.isDebugEnabled())
-                    logger.debug("Output from '{}' process status: {}", processString, output.trim());
+                    logger.debug("Output from '{}' process status: {}", pattern, output.trim());
 
                 result = true;
             } else {
-                logger.warn("No output from '{}' process status", processString);
+                logger.warn("No output from '{}' process status", pattern);
             }
         } catch (final IOException ioe) {
             logger.catching(ioe);
