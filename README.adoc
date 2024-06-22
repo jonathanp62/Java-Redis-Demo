@@ -10,7 +10,8 @@ The configuration is expressed in JSON and is supplied in config/config.json in 
 * *port* The number of the port that the Redis server is listening on
 * *protocol* The protocol for the Redis connect string, typically "redis://"
 * *server-cli*
-** *command* The fully qualified path name to the 'redis-server' command
+** *command-intel* The fully qualified path name to the 'redis-server' command on Intel architectures
+** *command-silicon* The fully qualified path name to the 'redis-server' command on Apple Silicon architectures
 ** *argument* The version argument for 'redis-server'
 
 == Logging
@@ -38,4 +39,4 @@ https://www.baeldung.com/redis-redisson
 https://github.com/redisson/redisson/wiki/Table-of-Content
 https://javadoc.io/doc/org.redisson/redisson/latest/index.html
 
-=== Current version: 0.8.1.
+=== Current version: 0.9.0.
