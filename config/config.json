@@ -1,4 +1,8 @@
 {
+  "process-utility": {
+    "redis-server": "redis-server",
+    "redis-stack-server": "redis-stack-server"
+  },
   "redis": {
     "hostname": "127.0.0.1",
     "port": 6379,

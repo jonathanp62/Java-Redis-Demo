@@ -1,13 +1,11 @@
 package net.jmp.demo.redis.config;
 
 /*
- * (#)Config.java   0.9.0   06/22/2024
- * (#)Config.java   0.5.0   05/18/2024
- * (#)Config.java   0.1.0   05/01/2024
+ * (#)ProcessUtility.java   0.9.0   06/22/2024
  *
  * @author    Jonathan Parker
  * @version   0.9.0
- * @since     0.1.0
+ * @since     0.9.0
  *
  * MIT License
  *
@@ -36,54 +34,50 @@ import com.google.gson.annotations.SerializedName;
 
 import java.util.Objects;
 
-/**
- * The configuration class.
- */
-public final class Config {
-    /** The Redis component. */
-    @SerializedName("redis")
-    private Redis redis;
+public class ProcessUtility {
+    /** The command for Intel architecture. */
+    @SerializedName("redis-server")
+    private String redisServer;
 
-    /** The process utility component. */
-    @SerializedName("process-utility")
-    private ProcessUtility processUtility;
+    /** The command for Apple Silicon architecture. */
+    @SerializedName("redis-stack-server")
+    private String redisStackServer;
 
     /**
-     * Get the Redis component
+     * Get the Redis server.
      *
-     * @return  net.jmp.demo.redis.Redis
+     * @return  java.lang.String
      */
-    public Redis getRedis() {
-        return this.redis;
+    public String getRedisServer() {
+        return this.redisServer;
     }
 
     /**
-     * Set the Redis component.
+     * Set the Redis server.
      *
-     * @param   redis   net.jmp.demo.redis.Redis
+     * @param   redisServer java.lang.String
      */
-    public void setRedis(final Redis redis) {
-        this.redis = redis;
+    public void setRedisServer(final String redisServer) {
+        this.redisServer = redisServer;
     }
 
     /**
-     * Set the process utility component.
+     * Get the Redis stack server.
      *
-     * @param   processUtility  net.jmp.demo.redis.ProcessUtility
+     * @return  java.lang.String
      */
-    public void setProcessUtility(final ProcessUtility processUtility) {
-        this.processUtility = processUtility;
+    public String getRedisStackServer() {
+        return this.redisStackServer;
     }
 
     /**
-     * Get the process utility component
+     * Set the Redis stack server.
      *
-     * @return  net.jmp.demo.redis.ProcessUtility
+     * @param   redisStackServer    java.lang.String
      */
-    public ProcessUtility getProcessUtility() {
-        return this.processUtility;
+    public void setRedisStackServer(final String redisStackServer) {
+        this.redisStackServer = redisStackServer;
     }
-
 
     @Override
     public boolean equals(Object o) {
@@ -91,30 +85,25 @@ public final class Config {
 
         if (o == null || getClass() != o.getClass()) return false;
 
-        final Config config = (Config) o;
+        final ProcessUtility that = (ProcessUtility) o;
 
-        return Objects.equals(this.redis, config.redis) && Objects.equals(this.processUtility, config.processUtility);
+        return Objects.equals(this.redisServer, that.redisServer) && Objects.equals(this.redisStackServer, that.redisStackServer);
     }
 
     @Override
     public int hashCode() {
-        int result = Objects.hashCode(this.redis);
+        int result = Objects.hashCode(this.redisServer);
 
-        result = 31 * result + Objects.hashCode(this.processUtility);
+        result = 31 * result + Objects.hashCode(this.redisStackServer);
 
         return result;
     }
 
-    /**
-     * The to-string method.
-     *
-     * @return  java.lang.String
-     */
     @Override
     public String toString() {
-        return "Config{" +
-                "processUtility=" + this.processUtility +
-                ", redis=" + this.redis +
+        return "ProcessUtility{" +
+                "redisServer='" + this.redisServer + '\'' +
+                ", redisStackServer='" + this.redisStackServer + '\'' +
                 '}';
     }
 }
