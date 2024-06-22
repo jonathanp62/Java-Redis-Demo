@@ -1,10 +1,11 @@
 package net.jmp.demo.redis.impl;
 
 /*
+ * (#)Json.java 0.9.0   06/22/2024
  * (#)Json.java 0.5.0   05/18/2024
  *
  * @author   Jonathan Parker
- * @version  0.5.0
+ * @version  0.9.0
  * @since    0.5.0
  *
  * MIT License
@@ -43,6 +44,8 @@ import org.slf4j.LoggerFactory;
 
 import org.slf4j.ext.XLogger;
 
+import net.jmp.demo.redis.ProcessUtility;
+
 import net.jmp.demo.redis.api.Demo;
 
 import net.jmp.demo.redis.config.*;
@@ -73,49 +76,53 @@ public final class Json extends Demo {
     public void go() {
         this.logger.entry();
 
-        final RJsonBucket<Config> bucket = this.client.getJsonBucket("my-config", new JacksonCodec<>(Config.class));
-        final String path = ".";
+        if (ProcessUtility.isRedisStackServerRunning()) {   // JSON handling requires the Redis stack server
+            final RJsonBucket<Config> bucket = this.client.getJsonBucket("my-config", new JacksonCodec<>(Config.class));
+            final String path = ".";
 
-        try {
-            if (bucket.setIfAbsent(path, this.config))
-                this.logger.info("Set the 'my-config' JSON bucket");
-            else {
-                this.logger.info("Did not set the 'my-config' JSON bucket");
+            try {
+                if (bucket.setIfAbsent(path, this.config))  // A RedisException occurs if the redis-stack-server is not running
+                    this.logger.info("Set the 'my-config' JSON bucket");
+                else {
+                    this.logger.info("Did not set the 'my-config' JSON bucket");
 
-                final Config myConfig = bucket.get();
+                    final Config myConfig = bucket.get();
 
-                if (myConfig.equals(this.config))
-                    this.logger.info("Serialized/deserialized config matches config object");
-                else
-                    this.logger.info("Serialized/deserialized config does not match config object");
+                    if (myConfig.equals(this.config))
+                        this.logger.info("Serialized/deserialized config matches config object");
+                    else
+                        this.logger.info("Serialized/deserialized config does not match config object");
 
-                this.logger.info("There are {} keys in the root", bucket.countKeys());
-                this.logger.info("There are {} keys in the redis section", bucket.countKeys("redis"));
-                this.logger.info("There are {} keys in the serverCLI section", bucket.countKeys("redis.serverCLI"));
+                    this.logger.info("There are {} keys in the root", bucket.countKeys());
+                    this.logger.info("There are {} keys in the redis section", bucket.countKeys("redis"));
+                    this.logger.info("There are {} keys in the serverCLI section", bucket.countKeys("redis.serverCLI"));
 
-                final var port = bucket.get(new JacksonCodec<>(new TypeReference<Integer>() {
-                }), "redis.port");
+                    final var port = bucket.get(new JacksonCodec<>(new TypeReference<Integer>() {
+                    }), "redis.port");
 
-                final var hostName = bucket.get(new JacksonCodec<>(new TypeReference<String>() {
-                }), "redis.hostName");
+                    final var hostName = bucket.get(new JacksonCodec<>(new TypeReference<String>() {
+                    }), "redis.hostName");
 
-                final var serverCli = bucket.get(new JacksonCodec<>(new TypeReference<ServerCLI>() {
-                }), "redis.serverCLI");
+                    final var serverCli = bucket.get(new JacksonCodec<>(new TypeReference<ServerCLI>() {
+                    }), "redis.serverCLI");
 
-                final var redis = bucket.get(new JacksonCodec<>(new TypeReference<Redis>() {
-                }), "redis");
+                    final var redis = bucket.get(new JacksonCodec<>(new TypeReference<Redis>() {
+                    }), "redis");
 
-                this.logger.info("The port              : {}", port);
-                this.logger.info("The host name         : {}", hostName);
-                this.logger.info("The server-cli section: {}", serverCli);
-                this.logger.info("The redis section     : {}", redis);
+                    this.logger.info("The port              : {}", port);
+                    this.logger.info("The host name         : {}", hostName);
+                    this.logger.info("The server-cli section: {}", serverCli);
+                    this.logger.info("The redis section     : {}", redis);
 
-                // Note: This fails if the path does not refer to a string
+                    // Note: This fails if the path does not refer to a string
 
-                this.logger.info("The string size of the redis.serverCLI.command is {}", bucket.stringSize("redis.serverCLI.command"));
+                    this.logger.info("The string size of the redis.serverCLI.command is {}", bucket.stringSize("redis.serverCLI.command"));
+                }
+            } catch (final RedisException re) {
+                this.logger.catching(re);
             }
-        } catch (final RedisException re) {
-            this.logger.catching(re);
+        } else {
+            this.logger.warn("The 'redis-stack-server' is not running");
         }
 
         this.logger.exit();

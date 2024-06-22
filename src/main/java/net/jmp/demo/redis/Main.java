@@ -1,6 +1,7 @@
 package net.jmp.demo.redis;
 
 /*
+ * (#)Main.java 0.9.0   06/22/2024
  * (#)Main.java 0.8.0   06/14/2024
  * (#)Main.java 0.6.0   05/23/2024
  * (#)Main.java 0.5.0   05/18/2024
@@ -10,7 +11,7 @@ package net.jmp.demo.redis;
  * (#)Main.java 0.1.0   05/01/2024
  *
  * @author   Jonathan Parker
- * @version  0.8.0
+ * @version  0.9.0
  * @since    0.1.0
  *
  * MIT License
@@ -94,30 +95,34 @@ public final class Main {
         this.getAppConfig().ifPresentOrElse(appConfig -> {
             RedissonClient client = null;
 
-            try {
-                client = this.getClient(appConfig);
+            if (ProcessUtility.isRedisServerRunning()) {
+                try {
+                    client = this.getClient(appConfig);
 
-                this.logServerVersion(appConfig);
+                    this.logServerVersion(appConfig);
 
-                final List<Demo> demos = List.of(
-                        new Caching(appConfig, client),
-                        new Publishing(appConfig, client),
-                        new Collections(appConfig, client),
-                        new Locking(appConfig, client),
-                        new Json(appConfig, client),
-                        new LiveObjects(appConfig, client)
-                );
+                    final List<Demo> demos = List.of(
+                            new Caching(appConfig, client),
+                            new Publishing(appConfig, client),
+                            new Collections(appConfig, client),
+                            new Locking(appConfig, client),
+                            new Json(appConfig, client),
+                            new LiveObjects(appConfig, client)
+                    );
 
-                demos.forEach(Demo::go);
-            } catch (final IOException ioe) {
-                this.logger.catching(ioe);
-            } finally {
-                if (client != null) {
-                    Connector.disconnect(client);
+                    demos.forEach(Demo::go);
+                } catch (final IOException ioe) {
+                    this.logger.catching(ioe);
+                } finally {
+                    if (client != null) {
+                        Connector.disconnect(client);
 
-                    if (client.isShutdown())
-                        this.logger.info("Redisson client has shut down");
+                        if (client.isShutdown())
+                            this.logger.info("Redisson client has shut down");
+                    }
                 }
+            } else {
+                this.logger.error("The 'redis-server' is not running");
             }
         }, () -> this.logger.error("No configuration found for Redis-Demo"));
 
