@@ -38,7 +38,7 @@ import com.google.gson.annotations.SerializedName;
 import java.util.Objects;
 
 /**
- * The Redis configuration class.
+ * The Redis class of the configuration.
  */
 public final class Redis {
     /** The host name. */
@@ -129,6 +129,12 @@ public final class Redis {
         this.serverCLI = serverCLI;
     }
 
+    /**
+     * The equals method.
+     *
+     * @param   o   java.lang.Object
+     * @return      boolean
+     */
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -140,6 +146,11 @@ public final class Redis {
         return this.port == redis.port && Objects.equals(this.hostName, redis.hostName) && Objects.equals(this.protocol, redis.protocol) && Objects.equals(this.serverCLI, redis.serverCLI);
     }
 
+    /**
+     * The hash-code method.
+     *
+     * @return  int
+     */
     @Override
     public int hashCode() {
         int result = Objects.hashCode(this.hostName);

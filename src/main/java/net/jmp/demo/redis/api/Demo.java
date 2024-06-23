@@ -35,6 +35,9 @@ import org.redisson.api.RedissonClient;
 
 import net.jmp.demo.redis.config.Config;
 
+/**
+ * The abstract Demo class.
+ */
 public abstract class Demo implements Go {
     /** The application configuration. */
     protected final Config config;
@@ -59,6 +62,9 @@ public abstract class Demo implements Go {
         this.client = client;
     }
 
+    /**
+     * The go method.
+     */
     @Override
     public void go() {
     }

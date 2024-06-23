@@ -34,6 +34,9 @@ import com.google.gson.annotations.SerializedName;
 
 import java.util.Objects;
 
+/**
+ * The process utility class of the configuration.
+ */
 public class ProcessUtility {
     /** The command for Intel architecture. */
     @SerializedName("redis-server")
@@ -79,6 +82,12 @@ public class ProcessUtility {
         this.redisStackServer = redisStackServer;
     }
 
+    /**
+     * The equals method.
+     *
+     * @param   o   java.lang.Object
+     * @return      boolean
+     */
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -90,6 +99,11 @@ public class ProcessUtility {
         return Objects.equals(this.redisServer, that.redisServer) && Objects.equals(this.redisStackServer, that.redisStackServer);
     }
 
+    /**
+     * The hash-code method.
+     *
+     * @return  int
+     */
     @Override
     public int hashCode() {
         int result = Objects.hashCode(this.redisServer);
@@ -99,6 +113,11 @@ public class ProcessUtility {
         return result;
     }
 
+    /**
+     * The to-string method.
+     *
+     * @return  java.lang.String
+     */
     @Override
     public String toString() {
         return "ProcessUtility{" +

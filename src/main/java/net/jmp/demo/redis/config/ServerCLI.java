@@ -36,6 +36,9 @@ import com.google.gson.annotations.SerializedName;
 
 import java.util.Objects;
 
+/**
+ * The server CLI class of the Redis section of the configuration.
+ */
 public final class ServerCLI {
     /** The command for Intel architecture. */
     @SerializedName("command-intel")
@@ -103,6 +106,12 @@ public final class ServerCLI {
         this.argument = argument;
     }
 
+    /**
+     * The equals method.
+     *
+     * @param   o   java.lang.Object
+     * @return      boolean
+     */
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -114,6 +123,11 @@ public final class ServerCLI {
         return Objects.equals(this.commandIntel, serverCLI.commandIntel) && Objects.equals(this.commandSilicon, serverCLI.commandSilicon) && Objects.equals(this.argument, serverCLI.argument);
     }
 
+    /**
+     * The hash-code method.
+     *
+     * @return  int
+     */
     @Override
     public int hashCode() {
         int result = Objects.hashCode(this.commandIntel);
@@ -124,6 +138,11 @@ public final class ServerCLI {
         return result;
     }
 
+    /**
+     * The to-string method.
+     *
+     * @return  java.lang.String
+     */
     @Override
     public String toString() {
         return "ServerCLI{" +

@@ -85,6 +85,12 @@ public final class Config {
     }
 
 
+    /**
+     * The equals method.
+     *
+     * @param   o   java.lang.Object
+     * @return      boolean
+     */
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -96,6 +102,11 @@ public final class Config {
         return Objects.equals(this.redis, config.redis) && Objects.equals(this.processUtility, config.processUtility);
     }
 
+    /**
+     * The hash-code method.
+     *
+     * @return  int
+     */
     @Override
     public int hashCode() {
         int result = Objects.hashCode(this.redis);

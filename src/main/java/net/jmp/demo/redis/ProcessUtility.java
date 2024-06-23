@@ -37,6 +37,9 @@ import org.slf4j.LoggerFactory;
 
 import org.slf4j.ext.XLogger;
 
+/*
+ * The process utility class. It only contains static methods.
+ */
 public final class ProcessUtility {
     private static final XLogger logger;
 

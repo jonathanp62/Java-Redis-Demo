@@ -46,76 +46,158 @@ import org.redisson.api.annotation.RIndex;
  */
 @REntity
 public class Recording {
+    /** The live object identifier. */
     @RId
     private String id;
 
+    /** The title. */
     private String title;
 
+    /** The label. */
     @RIndex
     private String label;
 
+    /** The list of artists. */
     private List<String> artists;
+
+    /** The time in minutes. */
     private Integer timeInMinutes;
+
+    /** The date when recorded. */
     private Date whenRecorded;
 
+    /**
+     * The default constructor.
+     */
     public Recording() {
         super();
     }
 
+    /**
+     * A constructor that takes an identifier.
+     *
+     * @param   id  java.lang.String
+     */
     public Recording(final String id) {
         super();
 
         this.id = id;
     }
 
+    /**
+     * Get the live object identifier.
+     *
+     * @return  java.lang.String
+     */
     public String getId() {
         return this.id;
     }
 
+    /**
+     * Set the live object identifier.
+     *
+     * @param   id  java.lang.String
+     */
     public void setId(final String id) {
         this.id = id;
     }
 
+    /**
+     * Get the title.
+     *
+     * @return  java.lang.String
+     */
     public String getTitle() {
         return this.title;
     }
 
+    /**
+     * Set the title.
+     *
+     * @param   title   java.lang.String
+     */
     public void setTitle(final String title) {
         this.title = title;
     }
 
+    /**
+     * Get the label.
+     *
+     * @return  java.lang.String
+     */
     public String getLabel() {
         return this.label;
     }
 
+    /**
+     * Set the label.
+     *
+     * @param   label   java.lang.String
+     */
     public void setLabel(final String label) {
         this.label = label;
     }
 
+    /**
+     * Get the list of artists.
+     *
+     * @return  java.util.List&lt;java.lang.String&gt;
+     */
     public List<String> getArtists() {
         return this.artists;
     }
 
+    /**
+     * Set the list of artists.
+     *
+     * @param   artists java.util.List&lt;java.lang.String&gt;
+     */
     public void setArtists(final List<String> artists) {
         this.artists = artists;
     }
 
+    /**
+     * Get the time in minutes.
+     *
+     * @return  java.lang.Integer
+     */
     public Integer getTimeInMinutes() {
         return this.timeInMinutes;
     }
 
+    /**
+     * Set the time in minutes.
+     *
+     * @param   timeInMinutes   java.lang.Integer
+     */
     public void setTimeInMinutes(final Integer timeInMinutes) {
         this.timeInMinutes = timeInMinutes;
     }
 
+    /**
+     * Get the date when recorded.
+     *
+     * @return  java.util.Date
+     */
     public Date getWhenRecorded() {
         return this.whenRecorded;
     }
 
+    /**
+     * Set the date when recorded.
+     *
+     * @param   whenRecorded    java.util.Date
+     */
     public void setWhenRecorded(final Date whenRecorded) {
         this.whenRecorded = whenRecorded;
     }
 
+    /**
+     * The equals method.
+     *
+     * @param   o   java.lang.Object
+     * @return      boolean
+     */
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -127,6 +209,11 @@ public class Recording {
         return Objects.equals(this.timeInMinutes, recording.timeInMinutes) && Objects.equals(this.id, recording.id) && Objects.equals(this.title, recording.title) && Objects.equals(this.label, recording.label) && Objects.equals(this.artists, recording.artists) && Objects.equals(this.whenRecorded, recording.whenRecorded);
     }
 
+    /**
+     * The hash-code method.
+     *
+     * @return  int
+     */
     @Override
     public int hashCode() {
         int result = Objects.hashCode(this.id);
@@ -140,6 +227,11 @@ public class Recording {
         return result;
     }
 
+    /**
+     * The to-string method.
+     *
+     * @return  java.lang.String
+     */
     @Override
     public String toString() {
         return "Recording{" +
