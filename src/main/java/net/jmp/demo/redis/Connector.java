@@ -36,6 +36,8 @@ import org.redisson.Redisson;
 
 import org.redisson.api.RedissonClient;
 
+import org.redisson.client.RedisConnectionException;
+
 import org.redisson.config.Config;
 
 import org.slf4j.LoggerFactory;
@@ -92,7 +94,13 @@ final class Connector {
         config.useSingleServer().setAddress(this.protocol + this.hostName + ":" + this.port);
         config.setCodec(new CustomKryo5Codec());
 
-        final var client = Redisson.create(config);
+        RedissonClient client;
+
+        try {
+            client = Redisson.create(config);
+        } catch (final RedisConnectionException rce) {
+            throw new RedisError("Failed to connect to Redis: " + this.protocol + this.hostName + ":" + this.port, rce);
+        }
 
         this.logger.info("Redisson client ID: {}", client.getId());
 
