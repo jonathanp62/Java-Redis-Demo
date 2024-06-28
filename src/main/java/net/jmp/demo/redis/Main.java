@@ -68,8 +68,8 @@ import net.jmp.demo.redis.impl.*;
  * The application's main class.
  */
 public final class Main {
-    /** The configuration file name. */
-    private static final String APP_CONFIG_FILE = "config/config.json";
+    /** The default configuration file name. */
+    private static final String DEFAULT_APP_CONFIG_FILE = "config/config.json";
 
     /** The logger. */
     private final XLogger logger = new XLogger(LoggerFactory.getLogger(this.getClass().getName()));
@@ -137,10 +137,14 @@ public final class Main {
     private Optional<Config> getAppConfig() {
         this.logger.entry();
 
+        final String configFileName = System.getProperty("app.configurationFile", DEFAULT_APP_CONFIG_FILE);
+
+        this.logger.info("Reading the configuration from: {}", configFileName);
+
         Config appConfig = null;
 
         try {
-            appConfig = new Gson().fromJson(Files.readString(Paths.get(APP_CONFIG_FILE)), Config.class);
+            appConfig = new Gson().fromJson(Files.readString(Paths.get(configFileName)), Config.class);
         } catch (final IOException ioe) {
             this.logger.catching(ioe);
         }
