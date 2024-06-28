@@ -39,11 +39,12 @@
  * SOFTWARE.
  */
 
-// Requires -PmyArchitecture=intel or -PmyArchitecture=silicon to work correctly
+// Requires systemProp.macosArchitecture=intel or systemProp.macosArchitecture=silicon
+// to be set in $HOME/.gradle/gradle.properties to work correctly.
 
 plugins {
     id 'application'
-    id 'java-library'
+    id 'java'
     id 'maven-publish'
 }
 
@@ -97,6 +98,11 @@ dependencies {
 group = 'net.jmp.demo.redis'
 version = '0.9.0'
 description = 'The Redis Demonstration'
+
+println "The groupId is ${project.group}"
+println "The artifactId is ${project.name}" // Set in settings.gradle
+println "The version is ${project.version}"
+
 java.sourceCompatibility = JavaVersion.VERSION_22
 
 java {
@@ -109,7 +115,11 @@ java {
 publishing {
     publications {
         maven(MavenPublication) {
-            from(components.java)
+            groupId = project.group
+            artifactId = project.name
+            version = project.version
+
+            from components.java
         }
     }
 }
@@ -124,7 +134,7 @@ tasks.withType(Javadoc).configureEach {
 }
 
 /*
- * Execute with gradle execProgram -PmyArchitecture=*** instead of gradle run
+ * Execute with gradle execProgram instead of gradle run
  */
 
 tasks.register('execProgram', JavaExec) {
