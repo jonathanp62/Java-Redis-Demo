@@ -30,20 +30,19 @@ package net.jmp.demo.redis.impl;
  * SOFTWARE.
  */
 
-import net.jmp.demo.redis.api.Demo;
-
-import org.redisson.api.RList;
-import org.redisson.api.RMap;
-import org.redisson.api.RSet;
-import org.redisson.api.RedissonClient;
-
-import org.slf4j.LoggerFactory;
-
-import org.slf4j.ext.XLogger;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 
 import net.jmp.demo.redis.api.Demo;
 
 import net.jmp.demo.redis.config.Config;
+
+import org.redisson.api.*;
+
+import org.slf4j.LoggerFactory;
+
+import org.slf4j.ext.XLogger;
 
 /*
  * The class that demonstrates using Redis pipelining.
@@ -70,6 +69,94 @@ public final class Pipelining extends Demo {
     @Override
     public void go() {
         this.logger.entry();
+
+        final int numItems = 100_567;
+
+        final RSet<String> identifiers = this.client.getSet("identifiers");
+
+        this.loadData(identifiers, numItems);
+        this.removeData(identifiers);
+
+        // Sets are deleted if they no longer have items in them
+
+        if (identifiers.delete())
+            this.logger.debug("Set '{}' deleted", "identifiers");
+
+        this.logger.exit();
+    }
+
+    /**
+     * Load the data.
+     *
+     * @param   identifiers org.redisson.api.RSet
+     * @param   count       int
+     */
+    private void loadData(final RSet<String> identifiers, final int count) {
+        this.logger.entry(identifiers, count);
+
+        assert identifiers != null;
+        assert identifiers.isEmpty();
+
+        this.logger.debug("Creating buckets and loading the identifiers set");
+
+        for (int i = 0; i < count; i++) {
+            final String id = UUID.randomUUID().toString();
+            final RBucket<String> bucket = this.client.getBucket(id);
+
+            bucket.set("Value: " + id);
+
+            identifiers.add(id);
+        }
+
+        this.logger.debug("There are {} identifiers", identifiers.size());
+
+        this.logger.exit();
+    }
+
+    /**
+     * Remove the data.
+     *
+     * @param   identifiers org.redisson.api.RSet
+     */
+    private void removeData(final RSet<String> identifiers) {
+        this.logger.entry();
+
+        assert identifiers != null;
+        assert !identifiers.isEmpty();
+
+        final int batchSize = 1_000;
+
+        while (!identifiers.isEmpty()) {
+            final Set<String> subset = identifiers.random(batchSize);
+            final RBatch batch = this.client.createBatch(BatchOptions.defaults());
+
+            subset.forEach(item -> {
+                batch.getBucket(item).getAndDeleteAsync();
+                batch.getSet("identifiers").removeAsync(item);
+            });
+
+            final RFuture<Long> future = batch.getAtomicLong("counter").incrementAndGetAsync();
+
+            future.whenComplete((result, exception) -> {
+                this.logger.debug("Done batch {}", String.valueOf(result));
+            });
+
+            batch.execute();
+
+            try {
+                future.get();
+            } catch (final InterruptedException ie) {
+                this.logger.catching(ie);
+                Thread.currentThread().interrupt();
+            } catch (final ExecutionException ee) {
+                this.logger.catching(ee);
+            }
+        }
+
+        final RAtomicLong counter = this.client.getAtomicLong("counter");
+
+        if (counter.delete())
+            this.logger.debug("Counter '{}' deleted", "counter");
 
         this.logger.exit();
     }
