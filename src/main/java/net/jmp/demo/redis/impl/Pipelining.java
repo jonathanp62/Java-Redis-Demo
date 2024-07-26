@@ -32,6 +32,7 @@ package net.jmp.demo.redis.impl;
 
 import java.util.Set;
 import java.util.UUID;
+
 import java.util.concurrent.ExecutionException;
 
 import net.jmp.demo.redis.api.Demo;
@@ -70,17 +71,19 @@ public final class Pipelining extends Demo {
     public void go() {
         this.logger.entry();
 
-        final int numItems = 100_567;
-
         final RSet<String> identifiers = this.client.getSet("identifiers");
 
-        this.loadData(identifiers, numItems);
+        this.loadData(identifiers);
         this.removeData(identifiers);
 
         // Sets are deleted if they no longer have items in them
 
-        if (identifiers.delete())
-            this.logger.debug("Set '{}' deleted", "identifiers");
+        if (identifiers.isExists()) {
+            if (identifiers.delete())
+                this.logger.debug("Set '{}' deleted", "identifiers");
+        } else {
+            this.logger.debug("Set '{}' no longer exists", "identifiers");
+        }
 
         this.logger.exit();
     }
@@ -89,24 +92,62 @@ public final class Pipelining extends Demo {
      * Load the data.
      *
      * @param   identifiers org.redisson.api.RSet
-     * @param   count       int
      */
-    private void loadData(final RSet<String> identifiers, final int count) {
-        this.logger.entry(identifiers, count);
+    private void loadData(final RSet<String> identifiers) {
+        this.logger.entry(identifiers);
 
         assert identifiers != null;
         assert identifiers.isEmpty();
 
+        final String batchNumber = "loadBatchNumber";
+        final int numItems = 100_789;
+
         this.logger.debug("Creating buckets and loading the identifiers set");
 
-        for (int i = 0; i < count; i++) {
-            final String id = UUID.randomUUID().toString();
-            final RBucket<String> bucket = this.client.getBucket(id);
+        final int batchSize = 5_000;
 
-            bucket.set("Value: " + id);
+        int itemsLeft = numItems;
 
-            identifiers.add(id);
+        while (itemsLeft > 0) {
+            final RBatch batch = this.client.createBatch(BatchOptions.defaults());
+            final int limit = Math.min(batchSize, itemsLeft);
+
+            for (int i = 0; i < limit; i++) {
+                final String id = UUID.randomUUID().toString();
+
+                batch.getBucket(id).setAsync("Value: " + id);
+                batch.getSet("identifiers").addAsync(id);
+
+                itemsLeft--;
+            }
+
+            final RFuture<Long> future = batch.getAtomicLong(batchNumber).incrementAndGetAsync();
+
+            future.whenComplete((result, exception) -> {
+                if (exception != null) {
+                    this.logger.error(exception.getMessage());
+                } else {
+                    if (this.logger.isDebugEnabled()) {
+                        this.logger.debug("Done loading batch {}", String.valueOf(result));
+                    }
+                }
+            });
+
+            batch.execute();
+
+            try {
+                future.get();
+            } catch (final InterruptedException ie) {
+                this.logger.catching(ie);
+                Thread.currentThread().interrupt();
+            } catch (final ExecutionException ee) {
+                this.logger.catching(ee);
+            }
         }
+
+        final RAtomicLong counter = this.client.getAtomicLong(batchNumber);
+
+        this.deleteCounter(counter, batchNumber);
 
         this.logger.debug("There are {} identifiers", identifiers.size());
 
@@ -124,7 +165,11 @@ public final class Pipelining extends Demo {
         assert identifiers != null;
         assert !identifiers.isEmpty();
 
-        final int batchSize = 1_000;
+        final String batchNumber = "removeBatchNumber";
+
+        this.logger.debug("Removing buckets and items from the identifiers set");
+
+        final int batchSize = 5_000;
 
         while (!identifiers.isEmpty()) {
             final Set<String> subset = identifiers.random(batchSize);
@@ -135,10 +180,16 @@ public final class Pipelining extends Demo {
                 batch.getSet("identifiers").removeAsync(item);
             });
 
-            final RFuture<Long> future = batch.getAtomicLong("counter").incrementAndGetAsync();
+            final RFuture<Long> future = batch.getAtomicLong(batchNumber).incrementAndGetAsync();
 
             future.whenComplete((result, exception) -> {
-                this.logger.debug("Done batch {}", String.valueOf(result));
+                if (exception != null) {
+                    this.logger.catching(exception);
+                } else {
+                    if (this.logger.isDebugEnabled()) {
+                        this.logger.debug("Done removing batch {}", String.valueOf(result));
+                    }
+                }
             });
 
             batch.execute();
@@ -153,10 +204,26 @@ public final class Pipelining extends Demo {
             }
         }
 
-        final RAtomicLong counter = this.client.getAtomicLong("counter");
+        final RAtomicLong counter = this.client.getAtomicLong(batchNumber);
+
+        this.deleteCounter(counter, batchNumber);
+
+        this.logger.exit();
+    }
+
+    /**
+     * Delete the specified counter.
+     *
+     * @param   counter org.redisson.api.RAtomicLong
+     */
+    private void deleteCounter(final RAtomicLong counter, final String name) {
+        this.logger.entry(counter, name);
+
+        assert counter != null;
+        assert name != null;
 
         if (counter.delete())
-            this.logger.debug("Counter '{}' deleted", "counter");
+            this.logger.debug("Counter '{}' deleted", name);
 
         this.logger.exit();
     }
