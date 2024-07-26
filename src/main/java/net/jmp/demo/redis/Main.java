@@ -1,6 +1,7 @@
 package net.jmp.demo.redis;
 
 /*
+ * (#)Main.java 0.10.0  07/26/2024
  * (#)Main.java 0.9.0   06/22/2024
  * (#)Main.java 0.8.0   06/14/2024
  * (#)Main.java 0.6.0   05/23/2024
@@ -11,7 +12,7 @@ package net.jmp.demo.redis;
  * (#)Main.java 0.1.0   05/01/2024
  *
  * @author   Jonathan Parker
- * @version  0.9.0
+ * @version  0.10.0
  * @since    0.1.0
  *
  * MIT License
@@ -107,7 +108,8 @@ public final class Main {
                             new Collections(appConfig, client),
                             new Locking(appConfig, client),
                             new Json(appConfig, client),
-                            new LiveObjects(appConfig, client)
+                            new LiveObjects(appConfig, client),
+                            new Pipelining(appConfig, client)
                     );
 
                     demos.forEach(Demo::go);

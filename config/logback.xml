@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
+ (#)logback.xml 0.10.0  07/26/2024
  (#)logback.xml 0.9.0   06/22/2024
  (#)logback.xml 0.6.0   05/23/2024
  (#)logback.xml 0.5.0   05/18/2024
@@ -10,7 +11,7 @@
  (#)logback.xml 0.1.0   05/01/2024
 
  @author   Jonathan Parker
- @version  0.9.0
+ @version  0.10.0
  @since    0.1.0
 
  MIT License
@@ -55,13 +56,16 @@
     <logger name="net.jmp.demo.redis.impl.Json" additivity="false" level="debug">
         <appender-ref ref="MAIN" />
     </logger>
-    <logger name="net.jmp.demo.redis.impl.LiveObjects" additivity="false" level="trace">
+    <logger name="net.jmp.demo.redis.impl.LiveObjects" additivity="false" level="debug">
         <appender-ref ref="MAIN" />
     </logger>
     <logger name="net.jmp.demo.redis.impl.Locking" additivity="false" level="debug">
         <appender-ref ref="MAIN" />
     </logger>
     <logger name="net.jmp.demo.redis.Main" additivity="false" level="info">
+        <appender-ref ref="MAIN" />
+    </logger>
+    <logger name="net.jmp.demo.redis.impl.Pipelining" additivity="false" level="trace">
         <appender-ref ref="MAIN" />
     </logger>
     <logger name="net.jmp.demo.redis.ProcessUtility" additivity="false" level="debug">
