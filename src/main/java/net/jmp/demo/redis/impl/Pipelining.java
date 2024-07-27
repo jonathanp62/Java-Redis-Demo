@@ -131,9 +131,13 @@ public final class Pipelining extends Demo {
         final RSet<String> keySet = this.keySetMap.get(setName);
 
         if (keySet.size() == numItems) {
-            this.logger.debug("There are {} keys", keySet.size());
+            if (this.logger.isDebugEnabled()) {
+                this.logger.debug("There are {} keys", keySet.size());
+            }
         } else {
-            this.logger.debug("There should be {} keys, not {}", numItems, keySet.size());
+            if (this.logger.isDebugEnabled()) {
+                this.logger.debug("There should be {} keys, not {}", numItems, keySet.size());
+            }
         }
 
         this.logger.exit();
@@ -192,7 +196,9 @@ public final class Pipelining extends Demo {
             }
         }
 
-        this.logger.info("Loading data took {} ms", System.currentTimeMillis() - startTime);
+        if (this.logger.isInfoEnabled()) {
+            this.logger.info("Loading data took {} ms", System.currentTimeMillis() - startTime);
+        }
 
         this.deleteCounter(this.client.getAtomicLong(batchNumber), batchNumber);
 
@@ -218,7 +224,9 @@ public final class Pipelining extends Demo {
         if (keySet.isEmpty()) {
             this.logger.debug("Key set '{}' is empty", setName);
         } else {
-            this.logger.debug("There should be 0 keys, not {}", keySet.size());
+            if (this.logger.isDebugEnabled()) {
+                this.logger.debug("There should be 0 keys, not {}", keySet.size());
+            }
         }
 
         this.logger.exit();
@@ -271,7 +279,9 @@ public final class Pipelining extends Demo {
             }
         }
 
-        this.logger.info("Removing data took {} ms", System.currentTimeMillis() - startTime);
+        if (this.logger.isInfoEnabled()) {
+            this.logger.info("Removing data took {} ms", System.currentTimeMillis() - startTime);
+        }
 
         this.deleteCounter(this.client.getAtomicLong(batchNumber), batchNumber);
 
@@ -289,8 +299,9 @@ public final class Pipelining extends Demo {
         assert counter != null;
         assert name != null;
 
-        if (counter.delete())
+        if (counter.delete()) {
             this.logger.debug("Counter '{}' deleted", name);
+        }
 
         this.logger.exit();
     }
