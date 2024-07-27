@@ -52,6 +52,9 @@ public final class Pipelining extends Demo {
     /** The logger. */
     private final XLogger logger = new XLogger(LoggerFactory.getLogger(this.getClass().getName()));
 
+    /** The map of key sets. */
+    private RMap<String, RSet<String>> keySetMap;
+
     /**
      * The constructor that takes
      * the application configuration.
@@ -71,18 +74,34 @@ public final class Pipelining extends Demo {
     public void go() {
         this.logger.entry();
 
-        final RSet<String> identifiers = this.client.getSet("identifiers");
+        final String mapName = "key-set-map";
 
-        this.loadData(identifiers);
-        this.removeData(identifiers);
+        this.keySetMap = this.client.getMap(mapName);
+
+        final String setName = UUID.randomUUID() + "-key-set";
+        final RSet<String> keySet = this.client.getSet(setName);
+
+        this.keySetMap.put(setName, keySet);
+
+        this.loadData(setName);
+        this.removeData(setName);
 
         // Sets are deleted if they no longer have items in them
 
-        if (identifiers.isExists()) {
-            if (identifiers.delete())
-                this.logger.debug("Set '{}' deleted", "identifiers");
+        if (keySet.isExists()) {
+            if (keySet.delete()) {
+                this.logger.debug("Set '{}' deleted", setName);
+            }
         } else {
-            this.logger.debug("Set '{}' no longer exists", "identifiers");
+            this.logger.debug("Set '{}' no longer exists", setName);
+        }
+
+        if (this.keySetMap.isExists()) {
+            if (this.keySetMap.delete()) {
+                this.logger.debug("Map '{}' deleted", mapName);
+            }
+        } else {
+            this.logger.debug("Map '{}' no longer exists", mapName);
         }
 
         this.logger.exit();
@@ -91,22 +110,23 @@ public final class Pipelining extends Demo {
     /**
      * Load the data.
      *
-     * @param   identifiers org.redisson.api.RSet
+     * @param   setName java.lang.String
      */
-    private void loadData(final RSet<String> identifiers) {
-        this.logger.entry(identifiers);
+    private void loadData(final String setName) {
+        this.logger.entry(setName);
 
-        assert identifiers != null;
-        assert identifiers.isEmpty();
+        assert setName != null;
 
         final String batchNumber = "loadBatchNumber";
         final int numItems = 100_789;
 
-        this.logger.debug("Creating buckets and loading the identifiers set");
+        this.logger.debug("Creating buckets and loading the key set");
 
         final int batchSize = 5_000;
 
         int itemsLeft = numItems;
+
+        final long startTime = System.currentTimeMillis();
 
         while (itemsLeft > 0) {
             final RBatch batch = this.client.createBatch(BatchOptions.defaults());
@@ -116,7 +136,7 @@ public final class Pipelining extends Demo {
                 final String id = UUID.randomUUID().toString();
 
                 batch.getBucket(id).setAsync("Value: " + id);
-                batch.getSet("identifiers").addAsync(id);
+                batch.getSet(setName).addAsync(id);
 
                 itemsLeft--;
             }
@@ -145,11 +165,17 @@ public final class Pipelining extends Demo {
             }
         }
 
-        final RAtomicLong counter = this.client.getAtomicLong(batchNumber);
+        this.logger.info("Loading data took {} ms", System.currentTimeMillis() - startTime);
 
-        this.deleteCounter(counter, batchNumber);
+        this.deleteCounter(this.client.getAtomicLong(batchNumber), batchNumber);
 
-        this.logger.debug("There are {} identifiers", identifiers.size());
+        final RSet<String> keySet = this.keySetMap.get(setName);
+
+        if (keySet.size() == numItems) {
+            this.logger.debug("There are {} keys", keySet.size());
+        } else {
+            this.logger.debug("There should be {} keys, not {}", numItems, keySet.size());
+        }
 
         this.logger.exit();
     }
@@ -157,27 +183,28 @@ public final class Pipelining extends Demo {
     /**
      * Remove the data.
      *
-     * @param   identifiers org.redisson.api.RSet
+     * @param   setName java.lang.String
      */
-    private void removeData(final RSet<String> identifiers) {
-        this.logger.entry();
+    private void removeData(final String setName) {
+        this.logger.entry(setName);
 
-        assert identifiers != null;
-        assert !identifiers.isEmpty();
+        assert setName != null;
 
         final String batchNumber = "removeBatchNumber";
 
         this.logger.debug("Removing buckets and items from the identifiers set");
 
         final int batchSize = 5_000;
+        final RSet<String> keySet = this.keySetMap.get(setName);
+        final long startTime = System.currentTimeMillis();
 
-        while (!identifiers.isEmpty()) {
-            final Set<String> subset = identifiers.random(batchSize);
+        while (!keySet.isEmpty()) {
+            final Set<String> subset = keySet.random(batchSize);
             final RBatch batch = this.client.createBatch(BatchOptions.defaults());
 
             subset.forEach(item -> {
                 batch.getBucket(item).getAndDeleteAsync();
-                batch.getSet("identifiers").removeAsync(item);
+                batch.getSet(setName).removeAsync(item);
             });
 
             final RFuture<Long> future = batch.getAtomicLong(batchNumber).incrementAndGetAsync();
@@ -204,9 +231,15 @@ public final class Pipelining extends Demo {
             }
         }
 
-        final RAtomicLong counter = this.client.getAtomicLong(batchNumber);
+        this.logger.info("Removing data took {} ms", System.currentTimeMillis() - startTime);
 
-        this.deleteCounter(counter, batchNumber);
+        this.deleteCounter(this.client.getAtomicLong(batchNumber), batchNumber);
+
+        if (keySet.isEmpty()) {
+            this.logger.debug("Key set '{}' is empty", setName);
+        } else {
+            this.logger.debug("There should be 0 keys, not {}", keySet.size());
+        }
 
         this.logger.exit();
     }
