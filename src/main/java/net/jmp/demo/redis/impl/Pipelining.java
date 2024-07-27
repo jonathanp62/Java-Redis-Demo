@@ -99,6 +99,8 @@ public final class Pipelining extends Demo {
             this.logger.debug("Set '{}' no longer exists", setName);
         }
 
+        // The map will exist since it has an entry in it
+
         if (this.keySetMap.isExists()) {
             if (this.keySetMap.delete()) {
                 this.logger.debug("Map '{}' deleted", mapName);
@@ -207,16 +209,37 @@ public final class Pipelining extends Demo {
 
         assert setName != null;
 
+        this.logger.debug("Removing buckets and keys from the key set");
+
+        this.runBatchRemove(setName);
+
+        final RSet<String> keySet = this.keySetMap.get(setName);
+
+        if (keySet.isEmpty()) {
+            this.logger.debug("Key set '{}' is empty", setName);
+        } else {
+            this.logger.debug("There should be 0 keys, not {}", keySet.size());
+        }
+
+        this.logger.exit();
+    }
+
+    /**
+     * Run the data removal in batches.
+     *
+     * @param   setName java.lang.String
+     */
+    private void runBatchRemove(final String setName) {
+        this.logger.entry(setName);
+
+        assert setName != null;
+
         final String batchNumber = "removeBatchNumber";
-
-        this.logger.debug("Removing buckets and items from the identifiers set");
-
-        final int batchSize = 5_000;
         final RSet<String> keySet = this.keySetMap.get(setName);
         final long startTime = System.currentTimeMillis();
 
         while (!keySet.isEmpty()) {
-            final Set<String> subset = keySet.random(batchSize);
+            final Set<String> subset = keySet.random(BATCH_SIZE);
             final RBatch batch = this.client.createBatch(BatchOptions.defaults());
 
             subset.forEach(item -> {
@@ -249,12 +272,6 @@ public final class Pipelining extends Demo {
         }
 
         this.logger.info("Removing data took {} ms", System.currentTimeMillis() - startTime);
-
-        if (keySet.isEmpty()) {
-            this.logger.debug("Key set '{}' is empty", setName);
-        } else {
-            this.logger.debug("There should be 0 keys, not {}", keySet.size());
-        }
 
         this.deleteCounter(this.client.getAtomicLong(batchNumber), batchNumber);
 
