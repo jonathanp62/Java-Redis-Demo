@@ -55,6 +55,9 @@ public final class Pipelining extends Demo {
     /** The map of key sets. */
     private RMap<String, RSet<String>> keySetMap;
 
+    /** The batch size for load and remove operations. */
+    private static final int BATCH_SIZE = 5_000;
+
     /**
      * The constructor that takes
      * the application configuration.
@@ -117,20 +120,42 @@ public final class Pipelining extends Demo {
 
         assert setName != null;
 
-        final String batchNumber = "loadBatchNumber";
         final int numItems = 100_789;
 
         this.logger.debug("Creating buckets and loading the key set");
 
-        final int batchSize = 5_000;
+        this.runBatchLoad(setName, numItems);
+
+        final RSet<String> keySet = this.keySetMap.get(setName);
+
+        if (keySet.size() == numItems) {
+            this.logger.debug("There are {} keys", keySet.size());
+        } else {
+            this.logger.debug("There should be {} keys, not {}", numItems, keySet.size());
+        }
+
+        this.logger.exit();
+    }
+
+    /**
+     * Run the data load in batches.
+     *
+     * @param   setName     java.lang.String
+     * @param   numItems    int
+     */
+    private void runBatchLoad(final String setName, final int numItems) {
+        this.logger.entry(setName, numItems);
+
+        assert setName != null;
 
         int itemsLeft = numItems;
 
+        final String batchNumber = "loadBatchNumber";
         final long startTime = System.currentTimeMillis();
 
         while (itemsLeft > 0) {
             final RBatch batch = this.client.createBatch(BatchOptions.defaults());
-            final int limit = Math.min(batchSize, itemsLeft);
+            final int limit = Math.min(BATCH_SIZE, itemsLeft);
 
             for (int i = 0; i < limit; i++) {
                 final String id = UUID.randomUUID().toString();
@@ -168,14 +193,6 @@ public final class Pipelining extends Demo {
         this.logger.info("Loading data took {} ms", System.currentTimeMillis() - startTime);
 
         this.deleteCounter(this.client.getAtomicLong(batchNumber), batchNumber);
-
-        final RSet<String> keySet = this.keySetMap.get(setName);
-
-        if (keySet.size() == numItems) {
-            this.logger.debug("There are {} keys", keySet.size());
-        } else {
-            this.logger.debug("There should be {} keys, not {}", numItems, keySet.size());
-        }
 
         this.logger.exit();
     }
@@ -233,13 +250,13 @@ public final class Pipelining extends Demo {
 
         this.logger.info("Removing data took {} ms", System.currentTimeMillis() - startTime);
 
-        this.deleteCounter(this.client.getAtomicLong(batchNumber), batchNumber);
-
         if (keySet.isEmpty()) {
             this.logger.debug("Key set '{}' is empty", setName);
         } else {
             this.logger.debug("There should be 0 keys, not {}", keySet.size());
         }
+
+        this.deleteCounter(this.client.getAtomicLong(batchNumber), batchNumber);
 
         this.logger.exit();
     }
