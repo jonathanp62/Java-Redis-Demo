@@ -32,6 +32,7 @@ Logging is achieved using the SLF4J facade over Logback. The logging configurati
 * Countdown Latches
 * JSON
 * Live Objects
+* Pipelining
 
 == Resources
 
