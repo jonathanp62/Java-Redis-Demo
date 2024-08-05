@@ -77,6 +77,8 @@ public final class Collections extends Demo {
         this.set();
         this.list();
 
+        // For queues see the Publishing class in this package
+
         this.logger.exit();
     }
 

@@ -1,11 +1,12 @@
 package net.jmp.demo.redis.impl;
 
 /*
+ * (#)Publishing.java   0.11.0  08/05/2024
  * (#)Publishing.java   0.3.0   05/03/2024
  * (#)Publishing.java   0.2.0   05/03/2024
  *
  * @author   Jonathan Parker
- * @version  0.3.0
+ * @version  0.11.0
  * @since    0.2.0
  *
  * MIT License
@@ -33,17 +34,17 @@ package net.jmp.demo.redis.impl;
 
 import java.time.Duration;
 
-import org.redisson.api.RSemaphore;
-import org.redisson.api.RTopic;
-import org.redisson.api.RedissonClient;
-
-import org.slf4j.LoggerFactory;
-
-import org.slf4j.ext.XLogger;
+import java.util.List;
 
 import net.jmp.demo.redis.api.Demo;
 
 import net.jmp.demo.redis.config.Config;
+
+import org.redisson.api.*;
+
+import org.slf4j.LoggerFactory;
+
+import org.slf4j.ext.XLogger;
 
 /**
  * A class that demonstrates using Redis for publishing and subscribing to a topic.
@@ -51,6 +52,9 @@ import net.jmp.demo.redis.config.Config;
 public final class Publishing extends Demo {
     /** The logger. */
     private final XLogger logger = new XLogger(LoggerFactory.getLogger(this.getClass().getName()));
+
+    /** The synchronization lock. */
+    private final Object lock = new Object();
 
     /**
      * The constructor that takes
@@ -71,7 +75,19 @@ public final class Publishing extends Demo {
     public void go() {
         this.logger.entry();
 
-        final String topicName = "jonathanp62";
+        this.topics();
+        this.queues();
+
+        this.logger.exit();
+    }
+
+    /**
+     * Topics.
+     */
+    private void topics() {
+        this.logger.entry();
+
+        final String topicName = "jonathans-topic";
         final String semaphoreName = "topic-semaphore";
         final RTopic subscribedTopic = this.client.getTopic(topicName);
         final RSemaphore semaphore = this.client.getSemaphore(semaphoreName);
@@ -102,6 +118,116 @@ public final class Publishing extends Demo {
 
         if (semaphore.delete())
             this.logger.debug("Semaphore '{}' deleted", semaphoreName);
+
+        this.logger.exit();
+    }
+
+    /**
+     * Queues.
+     */
+    private void queues() {
+        this.logger.entry();
+
+        final String queueName = "jonathans-queue";
+        final RQueue<String> producer = this.client.getQueue(queueName);
+        final Thread listener = createAndStartListenerThread(queueName);
+
+        final List<String> elements = List.of(
+                "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "stop"
+        );
+
+        try {
+            Thread.sleep(100);
+        } catch (final InterruptedException ie) {
+            Thread.currentThread().interrupt();
+        }
+
+        elements.forEach(e -> {
+            producer.offer(e);
+
+            if ("stop".equals(e)) {
+                synchronized (this.lock) {
+                    this.lock.notifyAll();
+                }
+            }
+        });
+
+        try {
+            listener.join();
+        } catch (final InterruptedException ie) {
+            Thread.currentThread().interrupt();
+        }
+
+        producer.delete();
+
+        this.logger.exit();
+    }
+
+    /**
+     * Create and start the listener thread.
+     *
+     * @param   queueName   java.lang.String
+     * @return              java.lang.Thread
+     */
+    private Thread createAndStartListenerThread(final String queueName) {
+        this.logger.entry(queueName);
+
+        assert queueName != null;
+
+        final Thread listener = new Thread(() -> {
+            final RQueue<String> consumer = this.client.getQueue(queueName);
+
+            while (true) {
+                if (consumer.isEmpty()) {
+                    this.waitForNotify();
+                } else {
+                    this.consumeQueue(consumer);
+                    break;
+                }
+            }
+        });
+
+        listener.start();
+
+        return listener;
+    }
+
+    /**
+     * Wait for lock notification.
+     */
+    private void waitForNotify() {
+        this.logger.entry();
+
+        synchronized (this.lock) {
+            while (true) {
+                try {
+                    this.lock.wait();
+                } catch (final InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                }
+
+                break;
+            }
+        }
+
+        this.logger.exit();
+    }
+
+    /**
+     * Consume the elements on the queue.
+     *
+     * @param   queue   org.redisson.api.RQueue&lt;java.lang.String&gt;
+     */
+    private void consumeQueue(final RQueue<String> queue) {
+        this.logger.entry(queue);
+
+        assert queue != null;
+
+        while (queue.peek() != null) {
+            final String message = queue.poll();
+
+            logger.info("Received message: {}", message);
+        }
 
         this.logger.exit();
     }
