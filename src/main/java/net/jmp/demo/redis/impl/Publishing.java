@@ -1,12 +1,13 @@
 package net.jmp.demo.redis.impl;
 
 /*
+ * (#)Publishing.java   0.12.0  08/06/2024
  * (#)Publishing.java   0.11.0  08/05/2024
  * (#)Publishing.java   0.3.0   05/03/2024
  * (#)Publishing.java   0.2.0   05/03/2024
  *
  * @author   Jonathan Parker
- * @version  0.11.0
+ * @version  0.12.0
  * @since    0.2.0
  *
  * MIT License
@@ -36,6 +37,10 @@ import java.time.Duration;
 
 import java.util.List;
 
+import java.util.stream.IntStream;
+
+import net.jmp.demo.redis.Synchronizer;
+
 import net.jmp.demo.redis.api.Demo;
 
 import net.jmp.demo.redis.config.Config;
@@ -53,8 +58,8 @@ public final class Publishing extends Demo {
     /** The logger. */
     private final XLogger logger = new XLogger(LoggerFactory.getLogger(this.getClass().getName()));
 
-    /** The synchronization lock. */
-    private final Object lock = new Object();
+    /** The synchronizer. */
+    private final Synchronizer synchronizer = new Synchronizer();
 
     /**
      * The constructor that takes
@@ -130,33 +135,36 @@ public final class Publishing extends Demo {
 
         final String queueName = "jonathans-queue";
         final RQueue<String> producer = this.client.getQueue(queueName);
-        final Thread listener = createAndStartListenerThread(queueName);
+        final List<Thread> listeners = createAndStartListenerThreads(queueName);
+        final int max = 30;
 
-        final List<String> elements = List.of(
-                "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "stop"
-        );
+        final List<String> elements =
+                IntStream.rangeClosed(1, max)
+                        .mapToObj(String::valueOf)
+                        .toList();
 
-        try {
-            Thread.sleep(100);
-        } catch (final InterruptedException ie) {
-            Thread.currentThread().interrupt();
-        }
+        // Add elements to the queue
 
         elements.forEach(e -> {
             producer.offer(e);
 
-            if ("stop".equals(e)) {
-                synchronized (this.lock) {
-                    this.lock.notifyAll();
+            if (String.valueOf(max).equals(e)) {
+                synchronized (this.synchronizer) {
+                    this.synchronizer.setNotified(true);
+                    this.synchronizer.notifyAll();
                 }
             }
         });
 
-        try {
-            listener.join();
-        } catch (final InterruptedException ie) {
-            Thread.currentThread().interrupt();
-        }
+        // Wait for the listeners to complete
+
+        listeners.forEach(listener -> {
+            try {
+                listener.join();
+            } catch (final InterruptedException ie) {
+                Thread.currentThread().interrupt();
+            }
+        });
 
         producer.delete();
 
@@ -164,32 +172,44 @@ public final class Publishing extends Demo {
     }
 
     /**
-     * Create and start the listener thread.
+     * Create and start the listener threads.
      *
      * @param   queueName   java.lang.String
-     * @return              java.lang.Thread
+     * @return              java.util.List&lt;java.lang.Thread&gt;
      */
-    private Thread createAndStartListenerThread(final String queueName) {
+    private List<Thread> createAndStartListenerThreads(final String queueName) {
         this.logger.entry(queueName);
 
         assert queueName != null;
 
-        final Thread listener = new Thread(() -> {
-            final RQueue<String> consumer = this.client.getQueue(queueName);
+        final Runnable runnable = () -> {
+            final RQueue<String> consumer = client.getQueue(queueName);
 
             while (true) {
                 if (consumer.isEmpty()) {
-                    this.waitForNotify();
+                    waitForNotify();
                 } else {
-                    this.consumeQueue(consumer);
+                    consumeQueue(consumer);
                     break;
                 }
             }
-        });
+        };
 
-        listener.start();
+        final Thread listener1 = new Thread(runnable);
+        final Thread listener2 = new Thread(runnable);
+        final Thread listener3 = new Thread(runnable);
 
-        return listener;
+        listener1.setName("listener-thread-1");
+        listener2.setName("listener-thread-2");
+        listener3.setName("listener-thread-3");
+
+        listener1.start();
+        listener2.start();
+        listener3.start();
+
+        this.logger.exit();
+
+        return List.of(listener1, listener2, listener3);
     }
 
     /**
@@ -198,13 +218,17 @@ public final class Publishing extends Demo {
     private void waitForNotify() {
         this.logger.entry();
 
-        synchronized (this.lock) {
-            while (true) {
-                try {
-                    this.lock.wait();
-                } catch (final InterruptedException ie) {
-                    Thread.currentThread().interrupt();
+        while (true) {
+            synchronized (this.synchronizer) {
+                if (!this.synchronizer.isNotified()) {
+                    try {
+                        this.synchronizer.wait();
+                    } catch (final InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                    }
                 }
+
+                this.synchronizer.setNotified(false);
 
                 break;
             }
@@ -226,7 +250,9 @@ public final class Publishing extends Demo {
         while (queue.peek() != null) {
             final String message = queue.poll();
 
-            logger.info("Received message: {}", message);
+            if (message != null) {
+                logger.info("Received message from {}: {}", Thread.currentThread().getName(), message);
+            }
         }
 
         this.logger.exit();

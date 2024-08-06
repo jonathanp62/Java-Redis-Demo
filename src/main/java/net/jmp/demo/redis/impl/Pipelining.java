@@ -1,10 +1,11 @@
 package net.jmp.demo.redis.impl;
 
 /*
+ * (#)Pipelining.java   0.12.0  08/06/2024
  * (#)Pipelining.java   0.10.0  07/26/2024
  *
  * @author   Jonathan Parker
- * @version  0.10.0
+ * @version  0.12.0
  * @since    0.10.0
  *
  * MIT License
@@ -41,6 +42,8 @@ import net.jmp.demo.redis.config.Config;
 
 import org.redisson.api.*;
 
+import org.redisson.client.RedisException;
+import org.redisson.client.RedisResponseTimeoutException;
 import org.slf4j.LoggerFactory;
 
 import org.slf4j.ext.XLogger;
@@ -176,7 +179,11 @@ public final class Pipelining extends Demo {
 
             future.whenComplete((result, exception) -> {
                 if (exception != null) {
-                    this.logger.error(exception.getMessage());
+                    if (exception instanceof RedisResponseTimeoutException) {
+                        this.logger.error("Redis operation timed out");
+                    } else {
+                        this.logger.error(exception.getMessage());
+                    }
                 } else {
                     if (this.logger.isDebugEnabled()) {
                         this.logger.debug("Done loading batch {}", String.valueOf(result));
@@ -184,7 +191,11 @@ public final class Pipelining extends Demo {
                 }
             });
 
-            batch.execute();
+            try {
+                batch.execute();
+            } catch (final RedisException re) {
+                this.logger.catching(re);
+            }
 
             try {
                 future.get();
@@ -259,7 +270,11 @@ public final class Pipelining extends Demo {
 
             future.whenComplete((result, exception) -> {
                 if (exception != null) {
-                    this.logger.catching(exception);
+                    if (exception instanceof RedisResponseTimeoutException) {
+                        this.logger.error("Redis operation timed out");
+                    } else {
+                        this.logger.error(exception.getMessage());
+                    }
                 } else {
                     if (this.logger.isDebugEnabled()) {
                         this.logger.debug("Done removing batch {}", String.valueOf(result));
@@ -267,7 +282,11 @@ public final class Pipelining extends Demo {
                 }
             });
 
-            batch.execute();
+            try {
+                batch.execute();
+            } catch (final RedisException re) {
+                this.logger.catching(re);
+            }
 
             try {
                 future.get();
