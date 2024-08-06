@@ -1,6 +1,7 @@
 package net.jmp.demo.redis;
 
 /*
+ * (#)Version.java  0.12.0  08/06/2024
  * (#)Version.java  0.11.0  08/05/2024
  * (#)Version.java  0.10.0  07/26/2024
  * (#)Version.java  0.9.0   06/22/2024
@@ -14,7 +15,7 @@ package net.jmp.demo.redis;
  * (#)Version.java  0.2.0   05/01/2024
  *
  * @author    Jonathan Parker
- * @version   0.11.0
+ * @version   0.12.0
  * @since     0.2.0
  *
  * MIT License
@@ -45,7 +46,7 @@ package net.jmp.demo.redis;
  */
 final class Version {
     /** The version. */
-    final static String VERSION_STRING = "0.11.0";
+    final static String VERSION_STRING = "0.12.0";
 
     /**
      * The default constructor.
