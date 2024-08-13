@@ -1,13 +1,14 @@
 package net.jmp.demo.redis.impl;
 
 /*
+ * (#)Locking.java  0.12.0  08/13/2024
  * (#)Locking.java  0.4.0   05/17/2024
  * (#)Locking.java  0.3.0   05/03/2024
  * (#)Locking.java  0.2.0   05/02/2024
  * (#)Locking.java  0.1.0   05/01/2024
  *
  * @author   Jonathan Parker
- * @version  0.4.0
+ * @version  0.12.0
  * @since    0.1.0
  *
  * MIT License
@@ -41,6 +42,8 @@ import org.redisson.api.RReadWriteLock;
 import org.redisson.api.RSemaphore;
 import org.redisson.api.RedissonClient;
 
+import org.redisson.client.RedisException;
+
 import org.slf4j.LoggerFactory;
 
 import org.slf4j.ext.XLogger;
@@ -49,10 +52,17 @@ import net.jmp.demo.redis.api.Demo;
 
 import net.jmp.demo.redis.config.Config;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+
 /*
  * The class that demonstrates using Redis for locking.
  */
 public final class Locking extends Demo {
+    private int distributedLockCounter1;
+    private int distributedLockCounter2;
+
     /** The logger. */
     private final XLogger logger = new XLogger(LoggerFactory.getLogger(this.getClass().getName()));
 
@@ -75,6 +85,7 @@ public final class Locking extends Demo {
         this.logger.entry();
 
         this.lock();
+        this.lockContention();
         this.multiLock();
         this.readWriteLock();
         this.semaphore();
@@ -112,6 +123,83 @@ public final class Locking extends Demo {
         }
 
         this.logger.exit();
+    }
+
+    /**
+     * Create lock contention.
+     *
+     * @since   0.12.0
+     */
+    private void lockContention() {
+        this.logger.entry();
+
+        final int iterations = 2;
+        final int numThreads = 500;
+
+        final List<Thread> threads = new ArrayList<>();
+
+        for (int x = 0; x < iterations; x++) {
+            this.distributedLockCounter1 = 0;
+            this.distributedLockCounter2 = 0;
+
+            for (int i = 0; i < numThreads; i++) {
+                final Thread t = new Thread(new DistributedLockThread(i));
+
+                t.setName("thread-" + i);
+                t.start();
+
+                threads.add(t);
+            }
+
+            for (final var t : threads) {
+                try {
+                    t.join();
+                } catch (final InterruptedException ie) {
+                    this.logger.error(Thread.currentThread().getName() + ": Interrupted");
+                    this.logger.catching(ie);
+                    Thread.currentThread().interrupt();
+                }
+            }
+
+            this.logger.info("Iteration: {} of {}", x, iterations);
+
+            if (this.distributedLockCounter1 + this.distributedLockCounter2 == numThreads) {
+                this.logger.info("The locks for all {} threads were acquired and released", numThreads);
+            }
+        }
+
+        this.logger.exit();
+    }
+
+    private class DistributedLockThread implements Runnable {
+        int num;
+
+        public DistributedLockThread(final int num){
+            this.num = num;
+        }
+
+        @Override
+        public void run() {
+            final RLock myLock1 = client.getReadWriteLock("lock1").writeLock();
+            final RLock myLock2 = client.getReadWriteLock("lock2").writeLock();
+
+            int randomNumber = new Random().nextInt(2);
+
+            try {
+                if (randomNumber == 0) {
+                    myLock1.lock();
+                    distributedLockCounter1++;
+                    myLock1.unlock();
+                } else {
+                    myLock2.lock();
+                    distributedLockCounter2++;
+                    myLock2.unlock();
+                }
+            } catch (final RedisException re) {
+                logger.error(Thread.currentThread().getName() + ": " + re.getMessage());
+                logger.catching(re);
+            }
+        }
     }
 
     /**
